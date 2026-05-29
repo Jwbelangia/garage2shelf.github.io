@@ -1,5 +1,8 @@
 const SCRIPT_ID = '10AlswStNEky-fd_ueqdRlIzEffGZfdveXy8LeQKOlHsQZ7ITUDBEY67b';
 const FORM_ENDPOINT = `https://script.google.com/macros/s/${SCRIPT_ID}/exec`;
+const ALLOWED_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const FADE_DURATION_MS = 1800;
+const SLIDE_INTERVAL_MS = 5200;
 
 const processImages = [
   { label: 'Process 1', color: '#38495f' },
@@ -61,7 +64,7 @@ function renderUploadFields() {
     const input = document.createElement('input');
     input.type = 'file';
     input.name = angle.toLowerCase();
-    input.accept = 'image/*';
+    input.accept = ALLOWED_UPLOAD_TYPES.join(',');
     input.hidden = true;
     input.required = true;
 
@@ -69,8 +72,18 @@ function renderUploadFields() {
     input.addEventListener('change', () => {
       const [file] = input.files;
       if (!file) return;
-      image.src = URL.createObjectURL(file);
-      image.alt = `${angle} uploaded image`;
+      if (!ALLOWED_UPLOAD_TYPES.includes(file.type)) {
+        statusText.textContent = `Please upload a JPG, PNG, WEBP, or GIF for ${angle}.`;
+        input.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        image.src = String(reader.result);
+        image.alt = `${angle} uploaded image`;
+      };
+      reader.readAsDataURL(file);
     });
 
     button.appendChild(image);
@@ -94,8 +107,8 @@ function setupFadeGallery() {
         650
       );
       fadeImage.classList.remove('fading');
-    }, 1800);
-  }, 5200);
+    }, FADE_DURATION_MS);
+  }, SLIDE_INTERVAL_MS);
 }
 
 form.addEventListener('submit', async (event) => {
@@ -116,7 +129,7 @@ form.addEventListener('submit', async (event) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Request failed: ${response.status}`);
+      throw new Error(`Request failed: ${response.status} ${response.statusText}`);
     }
 
     statusText.textContent = 'Submitted successfully. We will contact you by email.';
