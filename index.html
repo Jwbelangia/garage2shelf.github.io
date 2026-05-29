@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your Car in Hand</title>
+    <title>Garage 2 Shelf</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -32,13 +32,16 @@
             <section class="mini-gallery" aria-label="Featured gallery">
                 <div class="mini-gallery__viewport" data-carousel="featured">
                     <article class="mini-gallery__slide is-active">
-                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80" alt="Example custom car resin model view 1" />
+                        <img src="Images/Back_Unpainted_Resin.jpg" alt="Back view unpainted resin car example" />
                     </article>
                     <article class="mini-gallery__slide">
-                        <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80" alt="Example custom car resin model view 2" />
+                        <img src="Images/Back_Painted_Resin.jpg" alt="Back view painted resin car example" />
                     </article>
                     <article class="mini-gallery__slide">
-                        <img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=1200&q=80" alt="Example custom car resin model view 3" />
+                        <img src="Images/Full_Unpainted_Resin.jpg" alt="Full view unpainted resin car example" />
+                    </article>
+                    <article class="mini-gallery__slide">
+                        <img src="Images/Full_Painted_Resin.jpg" alt="Full view painted resin car example" />
                     </article>
                 </div>
                 <div class="mini-gallery__controls">
@@ -56,7 +59,7 @@
                 <p class="eyebrow">Order your model</p>
                 <h2>Upload the four angles needed to build your print.</h2>
                 <p>
-                    Capture clean shots of the front profile, right side, rear, and front-left diagonal. The closer the match, the better the resin model.
+                    Capture clean shots of the front, back, side, and full view. The closer the match, the better the resin model.
                 </p>
             </div>
 
@@ -107,25 +110,29 @@
                     <section class="form-panel form-panel--uploads">
                         <h3>Upload reference photos</h3>
                         <div class="upload-grid">
-                            <label class="upload-card" data-upload-label="Front Profile">
-                                <input type="file" accept="image/*" data-preview-label="Front Profile" />
-                                <span class="upload-card__overlay">Front Profile</span>
-                                <img class="upload-card__preview" alt="Front Profile preview" />
+                            <label class="upload-card upload-card--front" data-upload-label="Front">
+                                <input type="file" accept="image/*" data-preview-label="Front" />
+                                <span class="upload-card__badge">Front</span>
+                                <span class="upload-card__hint">Tap to upload a straight-on front photo</span>
+                                <img class="upload-card__preview" alt="Front preview" />
                             </label>
-                            <label class="upload-card" data-upload-label="Right Side">
-                                <input type="file" accept="image/*" data-preview-label="Right Side" />
-                                <span class="upload-card__overlay">Right Side</span>
-                                <img class="upload-card__preview" alt="Right Side preview" />
+                            <label class="upload-card upload-card--back" data-upload-label="Back">
+                                <input type="file" accept="image/*" data-preview-label="Back" />
+                                <span class="upload-card__badge">Back</span>
+                                <span class="upload-card__hint">Tap to upload a straight-on rear photo</span>
+                                <img class="upload-card__preview" alt="Back preview" />
                             </label>
-                            <label class="upload-card" data-upload-label="Rear View">
-                                <input type="file" accept="image/*" data-preview-label="Rear View" />
-                                <span class="upload-card__overlay">Rear View</span>
-                                <img class="upload-card__preview" alt="Rear View preview" />
+                            <label class="upload-card upload-card--side" data-upload-label="Side">
+                                <input type="file" accept="image/*" data-preview-label="Side" />
+                                <span class="upload-card__badge">Side</span>
+                                <span class="upload-card__hint">Tap to upload a clean side profile</span>
+                                <img class="upload-card__preview" alt="Side preview" />
                             </label>
-                            <label class="upload-card" data-upload-label="Front-Left Diagonal">
-                                <input type="file" accept="image/*" data-preview-label="Front-Left Diagonal" />
-                                <span class="upload-card__overlay">Front-Left Diagonal</span>
-                                <img class="upload-card__preview" alt="Front-Left Diagonal preview" />
+                            <label class="upload-card upload-card--full" data-upload-label="Full">
+                                <input type="file" accept="image/*" data-preview-label="Full" />
+                                <span class="upload-card__badge">Full</span>
+                                <span class="upload-card__hint">Tap to upload a full angle hero shot</span>
+                                <img class="upload-card__preview" alt="Full preview" />
                             </label>
                         </div>
                     </section>
