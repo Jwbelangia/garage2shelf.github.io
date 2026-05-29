@@ -27,13 +27,26 @@ const form = document.getElementById('carOrderForm');
 const statusText = document.getElementById('formStatus');
 
 function sketchPlaceholder(label) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="270" viewBox="0 0 420 270"><rect width="420" height="270" fill="#131821"/><g stroke="#9cb4ce" fill="none" stroke-width="5"><path d="M52 176h314l-21-55-58-29H155L96 111z"/><circle cx="129" cy="182" r="26"/><circle cx="301" cy="182" r="26"/></g><text x="210" y="245" text-anchor="middle" fill="#9cb4ce" font-family="Arial" font-size="24">${label} View</text></svg>`;
+  const safeLabel = escapeSvgText(label);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="270" viewBox="0 0 420 270"><rect width="420" height="270" fill="#131821"/><g stroke="#9cb4ce" fill="none" stroke-width="5"><path d="M52 176h314l-21-55-58-29H155L96 111z"/><circle cx="129" cy="182" r="26"/><circle cx="301" cy="182" r="26"/></g><text x="210" y="245" text-anchor="middle" fill="#9cb4ce" font-family="Arial" font-size="24">${safeLabel} View</text></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
 function photoPlaceholder(label, color, width, height) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="#101722"/></linearGradient></defs><rect width="${width}" height="${height}" fill="url(#g)"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="#d2e7ff" font-family="Arial" font-size="${Math.round(width / 13)}">${label}</text></svg>`;
+  const safeLabel = escapeSvgText(label);
+  const safeColor = /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#2e3b52';
+  const safeWidth = Number.isFinite(width) ? Math.max(240, width) : 1200;
+  const safeHeight = Number.isFinite(height) ? Math.max(140, height) : 650;
+  const safeFontSize = Math.round(safeWidth / 13);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${safeWidth}" height="${safeHeight}" viewBox="0 0 ${safeWidth} ${safeHeight}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${safeColor}"/><stop offset="1" stop-color="#101722"/></linearGradient></defs><rect width="${safeWidth}" height="${safeHeight}" fill="url(#g)"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="#d2e7ff" font-family="Arial" font-size="${safeFontSize}">${safeLabel}</text></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function escapeSvgText(value) {
+  return String(value).replace(/[&<>"']/g, (char) => {
+    const escapes = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return escapes[char];
+  });
 }
 
 function renderProcessGallery() {
@@ -134,9 +147,7 @@ form.addEventListener('submit', async (event) => {
 
     statusText.textContent = 'Submitted successfully. We will contact you by email.';
     form.reset();
-    while (uploadsRoot.firstChild) {
-      uploadsRoot.removeChild(uploadsRoot.firstChild);
-    }
+    uploadsRoot.replaceChildren();
     renderUploadFields();
   } catch (error) {
     console.error('Order submission failed', error);
