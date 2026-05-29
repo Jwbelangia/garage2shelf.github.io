@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YourCar-n-Hand</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <h1>YourCar-n-Hand</h1>
+        <p>3D resin prints of your car, primed or fully painted.</p>
+        <img
+          class="turntable-gif"
+          src="assets/resin-turntable-placeholder.svg"
+          alt="Resin painted model car on a rotating turn table"
+        />
+      </section>
+
+      <section class="process-gallery">
+        <h2>Process Gallery</h2>
+        <div class="thumb-grid" id="processGallery"></div>
+      </section>
+
+      <section class="order-form-section">
+        <h2>Reserve Your Build</h2>
+        <form id="carOrderForm">
+          <label>
+            Email
+            <input type="email" name="email" required placeholder="you@example.com" />
+          </label>
+
+          <fieldset>
+            <legend>Upload Car Angles (click each sketch)</legend>
+            <div class="upload-grid" id="angleUploads"></div>
+          </fieldset>
+
+          <label>
+            Resin Finish
+            <select name="resinFinish" required>
+              <option value="" selected disabled>Select a finish</option>
+              <option>Resin Unprimed</option>
+              <option>Resin Primed</option>
+              <option>Resin Painted</option>
+            </select>
+          </label>
+
+          <label>
+            Delivery Address
+            <textarea
+              name="deliveryAddress"
+              required
+              rows="4"
+              placeholder="Street, City, State, ZIP"
+            ></textarea>
+          </label>
+
+          <div class="payment-note">
+            <h3>Payment</h3>
+            <p>PayPal deposit: <strong>$20</strong>. Remaining balance is invoiced after order review.</p>
+            <a
+              class="paypal-link"
+              href="https://www.paypal.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Pay Deposit on PayPal</a
+            >
+          </div>
+
+          <button type="submit">Submit Order Request</button>
+          <p id="formStatus" class="status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="bottom-gallery">
+        <h2>Finished Builds</h2>
+        <div class="fade-gallery">
+          <img id="fadeImage" alt="Showcase of completed car builds" />
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
