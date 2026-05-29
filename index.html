@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Car in Hand</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <header class="hero">
+        <div class="hero__copy">
+            <p class="eyebrow">Custom 3D Resin Car Prints</p>
+            <h1>Turn your personal car into a display-ready resin model.</h1>
+            <p class="hero__text">
+                Send the key angles of your vehicle, choose the finish, and receive a handcrafted resin print made from your exact car.
+            </p>
+        </div>
+
+        <div class="hero__media">
+            <div class="hero__gif-frame">
+                <img
+                    src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=80"
+                    alt="Rotating resin car placeholder"
+                    class="hero__gif"
+                />
+                <div class="hero__gif-badge">Replace with looping turntable GIF</div>
+            </div>
+
+            <section class="mini-gallery" aria-label="Featured gallery">
+                <div class="mini-gallery__viewport" data-carousel="featured">
+                    <article class="mini-gallery__slide is-active">
+                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80" alt="Example custom car resin model view 1" />
+                    </article>
+                    <article class="mini-gallery__slide">
+                        <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80" alt="Example custom car resin model view 2" />
+                    </article>
+                    <article class="mini-gallery__slide">
+                        <img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=1200&q=80" alt="Example custom car resin model view 3" />
+                    </article>
+                </div>
+                <div class="mini-gallery__controls">
+                    <button type="button" class="gallery-btn" data-action="prev" data-target="featured" aria-label="Previous image">‹</button>
+                    <div class="mini-gallery__dots" data-dots="featured"></div>
+                    <button type="button" class="gallery-btn" data-action="next" data-target="featured" aria-label="Next image">›</button>
+                </div>
+            </section>
+        </div>
+    </header>
+
+    <main>
+        <section class="order-section" id="order">
+            <div class="section-heading">
+                <p class="eyebrow">Order your model</p>
+                <h2>Upload the four angles needed to build your print.</h2>
+                <p>
+                    Capture clean shots of the front profile, right side, rear, and front-left diagonal. The closer the match, the better the resin model.
+                </p>
+            </div>
+
+            <form class="order-form">
+                <div class="form-panels">
+                    <section class="form-panel form-panel--details">
+                        <h3>Your details</h3>
+                        <label>
+                            <span>Email</span>
+                            <input type="email" name="email" placeholder="you@example.com" required />
+                        </label>
+                        <label>
+                            <span>State</span>
+                            <input type="text" name="state" placeholder="State" required />
+                        </label>
+
+                        <fieldset class="finish-options">
+                            <legend>Select finish</legend>
+                            <label class="finish-card">
+                                <input type="radio" name="finish" value="35" checked />
+                                <span>
+                                    <strong>Resin Unprimed</strong>
+                                    <small>$35</small>
+                                </span>
+                            </label>
+                            <label class="finish-card">
+                                <input type="radio" name="finish" value="55" />
+                                <span>
+                                    <strong>Resin Primed</strong>
+                                    <small>$55</small>
+                                </span>
+                            </label>
+                            <label class="finish-card">
+                                <input type="radio" name="finish" value="85" />
+                                <span>
+                                    <strong>Resin Painted Basic</strong>
+                                    <small>$85</small>
+                                </span>
+                            </label>
+                        </fieldset>
+
+                        <div class="price-box">
+                            <span>Estimated price</span>
+                            <strong id="priceDisplay">$35</strong>
+                        </div>
+                    </section>
+
+                    <section class="form-panel form-panel--uploads">
+                        <h3>Upload reference photos</h3>
+                        <div class="upload-grid">
+                            <label class="upload-card" data-upload-label="Front Profile">
+                                <input type="file" accept="image/*" data-preview-label="Front Profile" />
+                                <span class="upload-card__overlay">Front Profile</span>
+                                <img class="upload-card__preview" alt="Front Profile preview" />
+                            </label>
+                            <label class="upload-card" data-upload-label="Right Side">
+                                <input type="file" accept="image/*" data-preview-label="Right Side" />
+                                <span class="upload-card__overlay">Right Side</span>
+                                <img class="upload-card__preview" alt="Right Side preview" />
+                            </label>
+                            <label class="upload-card" data-upload-label="Rear View">
+                                <input type="file" accept="image/*" data-preview-label="Rear View" />
+                                <span class="upload-card__overlay">Rear View</span>
+                                <img class="upload-card__preview" alt="Rear View preview" />
+                            </label>
+                            <label class="upload-card" data-upload-label="Front-Left Diagonal">
+                                <input type="file" accept="image/*" data-preview-label="Front-Left Diagonal" />
+                                <span class="upload-card__overlay">Front-Left Diagonal</span>
+                                <img class="upload-card__preview" alt="Front-Left Diagonal preview" />
+                            </label>
+                        </div>
+                    </section>
+                </div>
+            </form>
+        </section>
+
+        <section class="showcase-section" aria-label="Finished model showcase">
+            <div class="section-heading">
+                <p class="eyebrow">Recent builds</p>
+                <h2>See the real car transform into resin.</h2>
+            </div>
+
+            <div class="showcase-fader" data-fader>
+                <article class="showcase-card is-active">
+                    <img src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80" alt="Real car source image" />
+                    <div class="showcase-card__caption">Real photo</div>
+                </article>
+                <article class="showcase-card">
+                    <img src="https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1200&q=80" alt="Resin print example" />
+                    <div class="showcase-card__caption">Resin print</div>
+                </article>
+                <article class="showcase-card">
+                    <img src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=1200&q=80" alt="Painted resin print example" />
+                    <div class="showcase-card__caption">Painted finish</div>
+                </article>
+                <article class="showcase-card">
+                    <img src="https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1200&q=80" alt="Second real car source image" />
+                    <div class="showcase-card__caption">Next build: real photo</div>
+                </article>
+                <article class="showcase-card">
+                    <img src="https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=1200&q=80" alt="Second resin print example" />
+                    <div class="showcase-card__caption">Next build: resin print</div>
+                </article>
+                <article class="showcase-card">
+                    <img src="https://images.unsplash.com/photo-1489824904134-891ab64532f1?auto=format&fit=crop&w=1200&q=80" alt="Second painted resin print example" />
+                    <div class="showcase-card__caption">Next build: painted finish</div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
