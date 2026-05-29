@@ -3,7 +3,7 @@
 
 ## One-page site
 
-Open `/tmp/workspace/Jwbelangia/YourCar-n-Hand/index.html` in a browser (or serve the folder with a static server).
+Open `index.html` in a browser (or serve the folder with a static server).
 
 ### Included features
 - Hero section with a central GIF area (`assets/resin-turntable-placeholder.svg` can be replaced by your GIF)
@@ -18,4 +18,4 @@ Open `/tmp/workspace/Jwbelangia/YourCar-n-Hand/index.html` in a browser (or serv
   - `10AlswStNEky-fd_ueqdRlIzEffGZfdveXy8LeQKOlHsQZ7ITUDBEY67b`
 - Bottom slow-fade showcase gallery
 
-You can update process and bottom gallery image lists in `/tmp/workspace/Jwbelangia/YourCar-n-Hand/script.js`.
+You can update process and bottom gallery image lists in `script.js`.

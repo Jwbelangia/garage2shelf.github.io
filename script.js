@@ -121,9 +121,12 @@ form.addEventListener('submit', async (event) => {
 
     statusText.textContent = 'Submitted successfully. We will contact you by email.';
     form.reset();
-    uploadsRoot.innerHTML = '';
+    while (uploadsRoot.firstChild) {
+      uploadsRoot.removeChild(uploadsRoot.firstChild);
+    }
     renderUploadFields();
   } catch (error) {
+    console.error('Order submission failed', error);
     statusText.textContent =
       'Submission failed. If this continues, contact us directly and mention your desired resin finish.';
   }
