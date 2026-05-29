@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f3c4f" />
+      <stop offset="1" stop-color="#101722" />
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#bg)" />
+  <ellipse cx="480" cy="420" rx="240" ry="28" fill="#1f2a36" />
+  <g stroke="#d3e8ff" stroke-width="8" fill="none">
+    <path d="M250 350h460l-40-95-95-48H380l-98 47z" />
+    <circle cx="355" cy="360" r="46" />
+    <circle cx="610" cy="360" r="46" />
+  </g>
+  <text x="480" y="80" text-anchor="middle" fill="#e6f4ff" font-family="Arial" font-size="44">Resin Turntable GIF Placeholder</text>
+  <text x="480" y="125" text-anchor="middle" fill="#c8ddf2" font-family="Arial" font-size="28">Replace this file with your rotating car GIF</text>
+</svg>
