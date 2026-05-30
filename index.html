@@ -22,11 +22,11 @@
         <div class="hero__media">
             <div class="hero__gif-frame">
                 <img
-                    src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=80"
-                    alt="Rotating resin car placeholder"
+                    src="Images/Garage2Shelf.gif"
+                    alt="Garage 2 Shelf rotating resin car"
                     class="hero__gif"
                 />
-                <div class="hero__gif-badge">Replace with looping turntable GIF</div>
+                <div class="hero__gif-badge">Garage 2 Shelf turntable preview</div>
             </div>
 
             <section class="mini-gallery" aria-label="Featured gallery">
@@ -59,11 +59,11 @@
                 <p class="eyebrow">Order your model</p>
                 <h2>Upload the four angles needed to build your print.</h2>
                 <p>
-                    Capture clean shots of the front, back, side, and full view. The closer the match, the better the resin model.
+                    Capture clean shots of the front, back, left, and right sides of your vehicle. The closer the match, the better the resin model.
                 </p>
             </div>
 
-            <form class="order-form">
+            <form class="order-form" id="orderForm">
                 <div class="form-panels">
                     <section class="form-panel form-panel--details">
                         <h3>Your details</h3>
@@ -105,39 +105,100 @@
                             <span>Estimated price</span>
                             <strong id="priceDisplay">$35</strong>
                         </div>
+
+                        <button type="submit" class="primary-btn">Submit order</button>
+                        <p class="form-status" id="submitStatus" aria-live="polite"></p>
+                        <div class="order-result" id="orderResult" hidden>
+                            <span class="order-result__label">Your order GUID</span>
+                            <strong id="guidDisplay"></strong>
+                            <small>Save this GUID with your email to check order status later.</small>
+                        </div>
                     </section>
 
                     <section class="form-panel form-panel--uploads">
                         <h3>Upload reference photos</h3>
                         <div class="upload-grid">
                             <label class="upload-card upload-card--front" data-upload-label="Front">
-                                <input type="file" accept="image/*" data-preview-label="Front" />
+                                <input type="file" accept="image/*" data-preview-label="Front" data-field-name="front" required />
                                 <span class="upload-card__badge">Front</span>
                                 <span class="upload-card__hint">Tap to upload a straight-on front photo</span>
+                                <img class="upload-card__reference" src="Images/Ref_Photos/Front.jpg" alt="Front reference photo" />
                                 <img class="upload-card__preview" alt="Front preview" />
                             </label>
                             <label class="upload-card upload-card--back" data-upload-label="Back">
-                                <input type="file" accept="image/*" data-preview-label="Back" />
+                                <input type="file" accept="image/*" data-preview-label="Back" data-field-name="back" required />
                                 <span class="upload-card__badge">Back</span>
                                 <span class="upload-card__hint">Tap to upload a straight-on rear photo</span>
+                                <img class="upload-card__reference" src="Images/Ref_Photos/Back.jpg" alt="Back reference photo" />
                                 <img class="upload-card__preview" alt="Back preview" />
                             </label>
-                            <label class="upload-card upload-card--side" data-upload-label="Side">
-                                <input type="file" accept="image/*" data-preview-label="Side" />
-                                <span class="upload-card__badge">Side</span>
-                                <span class="upload-card__hint">Tap to upload a clean side profile</span>
-                                <img class="upload-card__preview" alt="Side preview" />
+                            <label class="upload-card upload-card--left" data-upload-label="Left">
+                                <input type="file" accept="image/*" data-preview-label="Left" data-field-name="left" required />
+                                <span class="upload-card__badge">Left</span>
+                                <span class="upload-card__hint">Tap to upload the full left side profile</span>
+                                <img class="upload-card__reference" src="Images/Ref_Photos/Left.jpg" alt="Left reference photo" />
+                                <img class="upload-card__preview" alt="Left preview" />
                             </label>
-                            <label class="upload-card upload-card--full" data-upload-label="Full">
-                                <input type="file" accept="image/*" data-preview-label="Full" />
-                                <span class="upload-card__badge">Full</span>
-                                <span class="upload-card__hint">Tap to upload a full angle hero shot</span>
-                                <img class="upload-card__preview" alt="Full preview" />
+                            <label class="upload-card upload-card--right" data-upload-label="Right">
+                                <input type="file" accept="image/*" data-preview-label="Right" data-field-name="right" required />
+                                <span class="upload-card__badge">Right</span>
+                                <span class="upload-card__hint">Tap to upload the full right side profile</span>
+                                <img class="upload-card__reference" src="Images/Ref_Photos/Right.jpg" alt="Right reference photo" />
+                                <img class="upload-card__preview" alt="Right preview" />
                             </label>
                         </div>
                     </section>
                 </div>
             </form>
+
+            <section class="lookup-panel">
+                <div class="lookup-panel__copy">
+                    <p class="eyebrow">Check your order</p>
+                    <h3>Retrieve your order by GUID and email.</h3>
+                    <p>Use the GUID returned after submission plus the same email address used when ordering.</p>
+                </div>
+
+                <form id="lookupForm" class="lookup-form">
+                    <label>
+                        <span>Order GUID</span>
+                        <input type="text" name="guid" placeholder="Paste your order GUID" required />
+                    </label>
+                    <label>
+                        <span>Email</span>
+                        <input type="email" name="lookupEmail" placeholder="you@example.com" required />
+                    </label>
+                    <button type="submit" class="secondary-btn">Retrieve order</button>
+                </form>
+
+                <p class="form-status" id="lookupStatus" aria-live="polite"></p>
+                <div class="lookup-result" id="lookupResult" hidden>
+                    <div class="lookup-result__grid">
+                        <div>
+                            <span>Status</span>
+                            <strong id="lookupOrderStatus"></strong>
+                        </div>
+                        <div>
+                            <span>Finish</span>
+                            <strong id="lookupFinish"></strong>
+                        </div>
+                        <div>
+                            <span>Price</span>
+                            <strong id="lookupPrice"></strong>
+                        </div>
+                        <div>
+                            <span>Last Updated</span>
+                            <strong id="lookupUpdated"></strong>
+                        </div>
+                    </div>
+                    <div class="lookup-links">
+                        <a id="trackingLink" href="#" target="_blank" rel="noreferrer" hidden>Open tracking</a>
+                        <a id="shippingLabelLink" href="#" target="_blank" rel="noreferrer" hidden>Open shipping label</a>
+                    </div>
+                    <div class="tracking-qr" id="trackingQr" hidden>
+                        <img id="trackingQrImage" alt="Tracking QR code" />
+                    </div>
+                </div>
+            </section>
         </section>
 
         <section class="showcase-section" aria-label="Finished model showcase">
@@ -175,6 +236,7 @@
         </section>
     </main>
 
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
