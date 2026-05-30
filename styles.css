@@ -240,6 +240,19 @@ h1 {
     font-size: 0.95rem;
 }
 
+.form-panel span small {
+    color: var(--muted);
+    font-size: 0.85em;
+}
+
+.honeypot-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
 .form-panel input[type="email"],
 .form-panel input[type="text"],
 .lookup-form input[type="email"],

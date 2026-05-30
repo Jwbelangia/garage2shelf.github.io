@@ -34,6 +34,13 @@ function doGet(e) {
 }
 
 function handleSubmitOrder_(payload) {
+	if (String(payload.honeypot || '').trim()) {
+	return {
+	  success: false,
+	  message: 'Submission ignored.'
+	};
+  }
+
   validateRequired_(payload.email, 'Email is required.');
   validateRequired_(payload.state, 'State is required.');
 
@@ -60,6 +67,7 @@ function handleSubmitOrder_(payload) {
 	guid,
 	createdAt,
 	payload.email,
+	payload.phone || '',
 	payload.state,
 	payload.finish || '',
 	payload.price || '',

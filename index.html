@@ -67,9 +67,19 @@
                 <div class="form-panels">
                     <section class="form-panel form-panel--details">
                         <h3>Your details</h3>
+                        <div class="honeypot-field" aria-hidden="true">
+                            <label>
+                                <span>Company</span>
+                                <input type="text" name="company" tabindex="-1" autocomplete="off" />
+                            </label>
+                        </div>
                         <label>
                             <span>Email</span>
                             <input type="email" name="email" placeholder="you@example.com" required />
+                        </label>
+                        <label>
+                            <span>Phone Number <small>(optional)</small></span>
+                            <input type="tel" name="phone" placeholder="(555) 555-5555" />
                         </label>
                         <label>
                             <span>State</span>

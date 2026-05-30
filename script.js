@@ -249,9 +249,18 @@ async function buildSubmissionPayload() {
     }
 
     const formData = new FormData(orderForm);
+    const honeypot = String(formData.get('company') || '').trim();
+    if (honeypot) {
+        throw new Error('Submission blocked.');
+    }
+
     const finish = getSelectedFinish();
     const files = {};
     const activeInputs = uploadInputs.filter((input) => input.files && input.files[0] && input.dataset.fieldName);
+    if (activeInputs.length !== 4) {
+        throw new Error('Please upload Front, Back, Left, and Right photos before submitting.');
+    }
+
     const totalSteps = Math.max(activeInputs.length + 2, 3);
     let currentStep = 0;
 
@@ -271,7 +280,9 @@ async function buildSubmissionPayload() {
         action: 'submitOrder',
         sheetName: config.sheetName,
         email: String(formData.get('email') || '').trim(),
+        phone: String(formData.get('phone') || '').trim(),
         state: String(formData.get('state') || '').trim(),
+        honeypot: honeypot,
         finish: finish.label,
         price: finish.price,
         files

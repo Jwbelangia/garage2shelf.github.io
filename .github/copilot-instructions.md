@@ -6,3 +6,4 @@
 - For this project, the order workflow should include editable status, shipping label support, and customer retrieval that can show tracking and optionally generate a QR code from the tracking link.
 - The required reference photos are Front, Back, Left, and Right; do not remove left/right side coverage to a single side image.
 - Use Drive order folder names in the format GUID with Date then underscore State, and avoid using @ symbols in folder names.
+- Add bot protection with a honeypot field, keep phone number optional, and require email plus all four photo uploads.
