@@ -107,6 +107,15 @@
                         </div>
 
                         <button type="submit" class="primary-btn">Submit order</button>
+                        <div class="submit-progress" id="submitProgress" hidden>
+                            <div class="submit-progress__top">
+                                <span id="submitProgressLabel">Preparing order...</span>
+                                <strong id="submitProgressPercent">0%</strong>
+                            </div>
+                            <div class="submit-progress__bar">
+                                <span id="submitProgressFill"></span>
+                            </div>
+                        </div>
                         <p class="form-status" id="submitStatus" aria-live="polite"></p>
                         <div class="order-result" id="orderResult" hidden>
                             <span class="order-result__label">Your order GUID</span>

@@ -8,6 +8,10 @@ const finishInputs = Array.from(document.querySelectorAll('input[name="finish"]'
 const priceDisplay = document.getElementById('priceDisplay');
 const uploadInputs = Array.from(document.querySelectorAll('.upload-card input[type="file"]'));
 const submitStatus = document.getElementById('submitStatus');
+const submitProgress = document.getElementById('submitProgress');
+const submitProgressLabel = document.getElementById('submitProgressLabel');
+const submitProgressPercent = document.getElementById('submitProgressPercent');
+const submitProgressFill = document.getElementById('submitProgressFill');
 const orderResult = document.getElementById('orderResult');
 const guidDisplay = document.getElementById('guidDisplay');
 const lookupForm = document.getElementById('lookupForm');
@@ -47,6 +51,28 @@ function renderFeaturedDots() {
         });
         dotsContainer.appendChild(dot);
     });
+}
+
+function setSubmitProgress(percent, label) {
+    const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+    if (submitProgress) {
+        submitProgress.hidden = false;
+    }
+    if (submitProgressLabel) {
+        submitProgressLabel.textContent = label;
+    }
+    if (submitProgressPercent) {
+        submitProgressPercent.textContent = `${safePercent}%`;
+    }
+    if (submitProgressFill) {
+        submitProgressFill.style.width = `${safePercent}%`;
+    }
+}
+
+function hideSubmitProgress() {
+    if (submitProgress) {
+        submitProgress.hidden = true;
+    }
 }
 
 function setFeaturedSlide(index) {
@@ -225,16 +251,21 @@ async function buildSubmissionPayload() {
     const formData = new FormData(orderForm);
     const finish = getSelectedFinish();
     const files = {};
+    const activeInputs = uploadInputs.filter((input) => input.files && input.files[0] && input.dataset.fieldName);
+    const totalSteps = Math.max(activeInputs.length + 2, 3);
+    let currentStep = 0;
 
-    for (const input of uploadInputs) {
+    setSubmitProgress(5, 'Preparing your order...');
+
+    for (const input of activeInputs) {
         const file = input.files && input.files[0];
         const fieldName = input.dataset.fieldName;
-        if (!file || !fieldName) {
-            continue;
-        }
-
+        currentStep += 1;
+        setSubmitProgress((currentStep / totalSteps) * 100, `Compressing ${input.dataset.previewLabel || fieldName} photo...`);
         files[fieldName] = await compressImageFile(file);
     }
+
+    setSubmitProgress(((totalSteps - 1) / totalSteps) * 100, 'Preparing upload...');
 
     return {
         action: 'submitOrder',
@@ -313,18 +344,21 @@ async function handleOrderSubmit(event) {
         return;
     }
 
-    submitStatus.textContent = 'Submitting order...';
+    submitStatus.textContent = 'Starting your order submission...';
     if (orderResult) {
         orderResult.hidden = true;
     }
+    setSubmitProgress(0, 'Starting...');
 
     try {
         const payload = await buildSubmissionPayload();
+        setSubmitProgress(92, 'Uploading photos and order details...');
         const result = await postJson(payload);
         if (!result.success) {
             throw new Error(result.message || 'Order submission failed.');
         }
 
+        setSubmitProgress(100, 'Order submitted successfully.');
         submitStatus.textContent = result.message || 'Order submitted successfully.';
         if (guidDisplay) {
             guidDisplay.textContent = result.guid || '';
@@ -337,7 +371,9 @@ async function handleOrderSubmit(event) {
         orderForm.reset();
         updatePrice();
         resetUploadPreviews();
+        window.setTimeout(hideSubmitProgress, 1200);
     } catch (error) {
+        setSubmitProgress(100, 'Submission stopped.');
         submitStatus.textContent = error instanceof Error ? error.message : 'Order submission failed.';
     }
 }
