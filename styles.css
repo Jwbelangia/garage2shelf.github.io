@@ -300,6 +300,12 @@ h1 {
     color: var(--accent);
 }
 
+.finish-card small s {
+    color: var(--muted);
+    opacity: 0.8;
+    margin-right: 0.35rem;
+}
+
 .price-box {
     display: flex;
     align-items: center;
