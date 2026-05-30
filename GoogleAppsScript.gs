@@ -2,6 +2,7 @@ const SPREADSHEET_ID = '1rttsg9txS1BrTADM7cMnJveQsKycBJzZquVRPoW6EWo';
 const SHEET_NAME = 'OrderSheet';
 const DRIVE_FOLDER_ID = '1QxshPegSnd6U0eXrAHoWhjAks0BXibnU';
 const DEFAULT_STATUS = 'Submitted';
+const DEFAULT_PAID = 'n';
 
 function doPost(e) {
   try {
@@ -41,8 +42,13 @@ function handleSubmitOrder_(payload) {
 	};
   }
 
+	validateRequired_(payload.firstName, 'First name is required.');
+  validateRequired_(payload.lastName, 'Last name is required.');
   validateRequired_(payload.email, 'Email is required.');
+	validateRequired_(payload.street1, 'Street address is required.');
+  validateRequired_(payload.city, 'City is required.');
   validateRequired_(payload.state, 'State is required.');
+  validateRequired_(payload.zipCode, 'Zip code is required.');
 
   const files = payload.files || {};
   ['front', 'back', 'left', 'right'].forEach(function (key) {
@@ -66,9 +72,15 @@ function handleSubmitOrder_(payload) {
   sheet.appendRow([
 	guid,
 	createdAt,
+	payload.firstName || '',
+	payload.lastName || '',
 	payload.email,
 	payload.phone || '',
+	payload.street1 || '',
+	payload.street2 || '',
+	payload.city || '',
 	payload.state,
+	payload.zipCode || '',
 	payload.finish || '',
 	payload.price || '',
 	frontPhotoUrl,
@@ -78,7 +90,8 @@ function handleSubmitOrder_(payload) {
 	DEFAULT_STATUS,
 	'',
 	'',
-	createdAt
+	createdAt,
+	DEFAULT_PAID
   ]);
 
   return {
