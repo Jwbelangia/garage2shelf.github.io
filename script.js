@@ -40,6 +40,7 @@ const trackingQr = document.getElementById('trackingQr');
 const trackingQrImage = document.getElementById('trackingQrImage');
 const showcaseCards = Array.from(document.querySelectorAll('.showcase-card'));
 const config = window.GARAGE2SHELF_CONFIG || { apiBaseUrl: '', sheetName: 'OrderSheet' };
+const ORDER_REFERENCE_STORAGE_KEY = 'garage2shelf-last-order';
 
 let featuredIndex = 0;
 let featuredIntervalId = null;
@@ -53,6 +54,33 @@ function renderFeaturedDots() {
     if (!dotsContainer) {
         return;
     }
+
+function saveLatestOrderReference(orderReference) {
+    try {
+        window.localStorage.setItem(ORDER_REFERENCE_STORAGE_KEY, JSON.stringify(orderReference));
+    } catch {
+        // Ignore storage failures.
+    }
+}
+
+function loadLatestOrderReference() {
+    try {
+        const raw = window.localStorage.getItem(ORDER_REFERENCE_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+function showOrderReference(orderNumber) {
+    if (guidDisplay) {
+        guidDisplay.textContent = orderNumber;
+    }
+
+    if (orderResult) {
+        orderResult.hidden = !orderNumber;
+    }
+}
 
     dotsContainer.innerHTML = '';
     featuredSlides.forEach((_, index) => {
@@ -614,9 +642,18 @@ async function handleOrderSubmit(event) {
             throw new Error(result.message || 'Order submission failed.');
         }
 
+        const orderNumber = result.guid || '';
+        showOrderReference(orderNumber);
+        saveLatestOrderReference({
+            orderNumber,
+            email: payload.email,
+            createdAt: result.createdAt || '',
+            paymentStatus: 'pending'
+        });
+
         setSubmitProgress(84, 'Order created successfully.', 'Your order number is ready. Preparing secure checkout next.');
         const checkoutSession = await createStripeCheckoutSession({
-            guid: result.guid || '',
+            guid: orderNumber,
             email: payload.email,
             finish: payload.finish,
             firstName: payload.firstName,
@@ -631,14 +668,7 @@ async function handleOrderSubmit(event) {
 
         setSubmitProgress(95, 'Preparing secure Stripe checkout...', 'Passing your order into Stripe with your customer details prefilled.');
         setSubmitProgress(100, 'Secure checkout ready.', 'Redirecting you to Stripe now.');
-        submitStatus.textContent = result.message || 'Order submitted successfully.';
-        if (guidDisplay) {
-            guidDisplay.textContent = result.guid || '';
-        }
-
-        if (orderResult) {
-            orderResult.hidden = !result.guid;
-        }
+        submitStatus.textContent = `Order Number ${orderNumber} created. A confirmation email has been sent if available.`;
 
         submitStatus.textContent = 'Order received. Redirecting to secure Stripe checkout...';
         window.location.href = checkoutSession.checkoutUrl;
@@ -744,6 +774,11 @@ uploadInputs.forEach((input) => {
     input.addEventListener('change', handleUploadPreview);
 });
 syncUploadProgress();
+
+const latestOrderReference = loadLatestOrderReference();
+if (latestOrderReference?.orderNumber) {
+    showOrderReference(latestOrderReference.orderNumber);
+}
 
 orderForm?.addEventListener('submit', handleOrderSubmit);
 lookupForm?.addEventListener('submit', handleLookupSubmit);

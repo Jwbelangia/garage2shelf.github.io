@@ -94,12 +94,43 @@ function handleSubmitOrder_(payload) {
 	DEFAULT_PAID
   ]);
 
+  sendOrderConfirmationEmail_(payload, guid, createdAt);
+
   return {
 	success: true,
 	guid: guid,
 	message: 'Order submitted successfully.',
 	createdAt: createdAt
   };
+}
+
+function sendOrderConfirmationEmail_(payload, orderNumber, createdAt) {
+  const email = String(payload.email || '').trim();
+  if (!email) {
+	return;
+  }
+
+  const firstName = String(payload.firstName || '').trim();
+  const subject = 'Garage 2 Shelf Order Number: ' + orderNumber;
+  const message = [
+	'Hi ' + (firstName || 'there') + ',',
+	'',
+	'Thank you for starting your Garage 2 Shelf order.',
+	'Your Order Number is: ' + orderNumber,
+	'',
+	'Order details:',
+	'- Finish: ' + String(payload.finish || ''),
+	'- Price: $' + String(payload.price || ''),
+	'- Created: ' + createdAt,
+	'',
+	'Your order has been created and is waiting for payment confirmation through Stripe.',
+	'Save this Order Number with your email so you can check order status later.',
+	'',
+	'Thank you,',
+	'Garage 2 Shelf'
+  ].join('\n');
+
+  MailApp.sendEmail(email, subject, message);
 }
 
 function handleLookupOrder_(payload) {
