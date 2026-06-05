@@ -55,6 +55,20 @@ function renderFeaturedDots() {
         return;
     }
 
+    dotsContainer.innerHTML = '';
+    featuredSlides.forEach((_, index) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.classList.toggle('is-active', index === featuredIndex);
+        dot.setAttribute('aria-label', `Go to image ${index + 1}`);
+        dot.addEventListener('click', () => {
+            setFeaturedSlide(index);
+            restartFeaturedTimer();
+        });
+        dotsContainer.appendChild(dot);
+    });
+}
+
 function saveLatestOrderReference(orderReference) {
     try {
         window.localStorage.setItem(ORDER_REFERENCE_STORAGE_KEY, JSON.stringify(orderReference));
@@ -80,20 +94,6 @@ function showOrderReference(orderNumber) {
     if (orderResult) {
         orderResult.hidden = !orderNumber;
     }
-}
-
-    dotsContainer.innerHTML = '';
-    featuredSlides.forEach((_, index) => {
-        const dot = document.createElement('button');
-        dot.type = 'button';
-        dot.classList.toggle('is-active', index === featuredIndex);
-        dot.setAttribute('aria-label', `Go to image ${index + 1}`);
-        dot.addEventListener('click', () => {
-            setFeaturedSlide(index);
-            restartFeaturedTimer();
-        });
-        dotsContainer.appendChild(dot);
-    });
 }
 
 function setSubmitProgress(percent, label, note = '') {
