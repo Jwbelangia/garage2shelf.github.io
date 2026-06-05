@@ -17,6 +17,8 @@ const priceDisplay = document.getElementById('priceDisplay');
 const reviewFinish = document.getElementById('reviewFinish');
 const reviewPrice = document.getElementById('reviewPrice');
 const uploadInputs = Array.from(document.querySelectorAll('.upload-card input[type="file"]'));
+const uploadProgressCount = document.getElementById('uploadProgressCount');
+const uploadProgressPills = Array.from(document.querySelectorAll('[data-upload-pill]'));
 const submitStatus = document.getElementById('submitStatus');
 const submitProgress = document.getElementById('submitProgress');
 const submitProgressLabel = document.getElementById('submitProgressLabel');
@@ -310,13 +312,48 @@ function goToPreviousCheckoutStep() {
     setCheckoutStep(checkoutStepIndex - 1);
 }
 
+function syncUploadProgress() {
+    const completedFields = new Set();
+
+    uploadInputs.forEach((input) => {
+        const fieldName = input.dataset.fieldName;
+        const card = input.closest('.upload-card');
+        const hasFile = Boolean(input.files && input.files[0]);
+
+        if (card) {
+            card.classList.toggle('has-image', hasFile);
+        }
+
+        if (fieldName && hasFile) {
+            completedFields.add(fieldName);
+        }
+    });
+
+    if (uploadProgressCount) {
+        uploadProgressCount.textContent = `${completedFields.size} of ${uploadInputs.length} uploaded`;
+    }
+
+    uploadProgressPills.forEach((pill) => {
+        const fieldName = pill.dataset.uploadPill;
+        pill.classList.toggle('is-complete', Boolean(fieldName && completedFields.has(fieldName)));
+    });
+}
+
 function handleUploadPreview(event) {
     const input = event.currentTarget;
     const file = input.files && input.files[0];
     const card = input.closest('.upload-card');
     const preview = card ? card.querySelector('.upload-card__preview') : null;
 
-    if (!file || !card || !preview) {
+    if (!card || !preview) {
+        syncUploadProgress();
+        return;
+    }
+
+    if (!file) {
+        preview.removeAttribute('src');
+        card.classList.remove('has-image');
+        syncUploadProgress();
         return;
     }
 
@@ -324,6 +361,7 @@ function handleUploadPreview(event) {
     reader.onload = () => {
         preview.src = String(reader.result);
         card.classList.add('has-image');
+        syncUploadProgress();
     };
     reader.readAsDataURL(file);
 }
@@ -543,6 +581,7 @@ function resetUploadPreviews() {
         }
         card?.classList.remove('has-image');
     });
+    syncUploadProgress();
 }
 
 async function handleOrderSubmit(event) {
@@ -704,6 +743,7 @@ updatePrice();
 uploadInputs.forEach((input) => {
     input.addEventListener('change', handleUploadPreview);
 });
+syncUploadProgress();
 
 orderForm?.addEventListener('submit', handleOrderSubmit);
 lookupForm?.addEventListener('submit', handleLookupSubmit);

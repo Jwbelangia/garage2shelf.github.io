@@ -188,9 +188,23 @@
                             <div class="form-panel form-panel--uploads">
                                 <h3>Upload reference photos</h3>
                                 <p class="checkout-screen__copy">Use the guide images below and upload Front, Back, Left, and Right views before continuing.</p>
+                                <div class="upload-progress-panel" aria-live="polite">
+                                    <div>
+                                        <span class="upload-progress-panel__label">Photo checklist</span>
+                                        <strong id="uploadProgressCount">0 of 4 uploaded</strong>
+                                        <p>Required views: Front, Back, Left, and Right.</p>
+                                    </div>
+                                    <div class="upload-progress-track" id="uploadProgressTrack">
+                                        <span class="upload-progress-pill" data-upload-pill="front"><span>1</span>Front</span>
+                                        <span class="upload-progress-pill" data-upload-pill="back"><span>2</span>Back</span>
+                                        <span class="upload-progress-pill" data-upload-pill="left"><span>3</span>Left</span>
+                                        <span class="upload-progress-pill" data-upload-pill="right"><span>4</span>Right</span>
+                                    </div>
+                                </div>
                                 <div class="upload-grid">
                                     <label class="upload-card upload-card--front" data-upload-label="Front">
                                         <input type="file" accept="image/*" data-preview-label="Front" data-field-name="front" required />
+                                        <span class="upload-card__number">1</span>
                                         <span class="upload-card__badge">Front</span>
                                         <span class="upload-card__hint">Tap to upload a straight-on front photo</span>
                                         <img class="upload-card__reference" src="Images/Ref_Photos/Front.jpg" alt="Front reference photo" />
@@ -198,6 +212,7 @@
                                     </label>
                                     <label class="upload-card upload-card--back" data-upload-label="Back">
                                         <input type="file" accept="image/*" data-preview-label="Back" data-field-name="back" required />
+                                        <span class="upload-card__number">2</span>
                                         <span class="upload-card__badge">Back</span>
                                         <span class="upload-card__hint">Tap to upload a straight-on rear photo</span>
                                         <img class="upload-card__reference" src="Images/Ref_Photos/Back.jpg" alt="Back reference photo" />
@@ -205,6 +220,7 @@
                                     </label>
                                     <label class="upload-card upload-card--left" data-upload-label="Left">
                                         <input type="file" accept="image/*" data-preview-label="Left" data-field-name="left" required />
+                                        <span class="upload-card__number">3</span>
                                         <span class="upload-card__badge">Left</span>
                                         <span class="upload-card__hint">Tap to upload the full left side profile</span>
                                         <img class="upload-card__reference" src="Images/Ref_Photos/Left.jpg" alt="Left reference photo" />
@@ -212,6 +228,7 @@
                                     </label>
                                     <label class="upload-card upload-card--right" data-upload-label="Right">
                                         <input type="file" accept="image/*" data-preview-label="Right" data-field-name="right" required />
+                                        <span class="upload-card__number">4</span>
                                         <span class="upload-card__badge">Right</span>
                                         <span class="upload-card__hint">Tap to upload the full right side profile</span>
                                         <img class="upload-card__reference" src="Images/Ref_Photos/Right.jpg" alt="Right reference photo" />
