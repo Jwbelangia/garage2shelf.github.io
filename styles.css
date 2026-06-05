@@ -85,7 +85,7 @@ input {
 }
 
 .hero__banner-frame {
-    width: min(960px, 100%);
+    width: 100%;
     margin: 0 auto;
     padding: 0.7rem;
     border-radius: 30px;
