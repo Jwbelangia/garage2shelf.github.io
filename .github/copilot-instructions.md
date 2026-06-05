@@ -12,3 +12,4 @@
 - The checkout flow should move into a right-side slide-out modal with a multi-step experience, using Stripe as the primary payment option.
 - Prefer a lightweight Cloudflare server to keep sensitive integration details off the client while still connecting to Google Sheets. 
 - Reuse the same Cloudflare and Stripe accounts across multiple sites while keeping each site's integration separated.
+- Update Garage2Shelf pricing to Unpainted $50 and Painted $100 instead of $40/$80.

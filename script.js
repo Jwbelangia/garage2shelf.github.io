@@ -180,7 +180,7 @@ function startShowcaseFader() {
 
 function updatePrice() {
     const selected = finishInputs.find((input) => input.checked);
-    const value = selected ? Number(selected.value) : 40;
+    const value = selected ? Number(selected.value) : 50;
     if (priceDisplay) {
         priceDisplay.textContent = `$${value}`;
     }
@@ -197,7 +197,7 @@ function updatePrice() {
 function getSelectedFinish() {
     const selected = finishInputs.find((input) => input.checked);
     if (!selected) {
-        return { label: 'Unpainted', price: 40 };
+        return { label: 'Unpainted', price: 50 };
     }
 
     const label = selected.closest('.finish-card')?.querySelector('strong')?.textContent?.trim() || 'Unpainted';
@@ -466,6 +466,40 @@ async function postJson(payload) {
     return response.json();
 }
 
+async function createStripeCheckoutSession(order) {
+    if (!config.apiBaseUrl) {
+        throw new Error('Add your Cloudflare Worker URL in config.js before using Stripe checkout.');
+    }
+
+    const requestUrl = `${config.apiBaseUrl.replace(/\/$/, '')}/api/payment/create`;
+    const response = await fetch(requestUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+            guid: order.guid,
+            email: order.email,
+            finish: order.finish,
+            firstName: order.firstName,
+            lastName: order.lastName,
+            phone: order.phone,
+            street1: order.street1,
+            street2: order.street2,
+            city: order.city,
+            state: order.state,
+            zipCode: order.zipCode
+        })
+    });
+
+    const result = await response.json();
+    if (!response.ok || !result.success || !result.checkoutUrl) {
+        throw new Error(result.message || 'Stripe checkout session creation failed.');
+    }
+
+    return result;
+}
+
 function setLinkState(element, url) {
     if (!element) {
         return;
@@ -536,6 +570,21 @@ async function handleOrderSubmit(event) {
             throw new Error(result.message || 'Order submission failed.');
         }
 
+        setSubmitProgress(96, 'Creating secure Stripe checkout...');
+        const checkoutSession = await createStripeCheckoutSession({
+            guid: result.guid || '',
+            email: payload.email,
+            finish: payload.finish,
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            phone: payload.phone,
+            street1: payload.street1,
+            street2: payload.street2,
+            city: payload.city,
+            state: payload.state,
+            zipCode: payload.zipCode
+        });
+
         setSubmitProgress(100, 'Order submitted successfully.');
         submitStatus.textContent = result.message || 'Order submitted successfully.';
         if (guidDisplay) {
@@ -546,14 +595,8 @@ async function handleOrderSubmit(event) {
             orderResult.hidden = !result.guid;
         }
 
-        submitStatus.textContent = 'Order received. Stripe checkout will hook into this final step through the Worker next.';
-        orderForm.reset();
-        updatePrice();
-        resetUploadPreviews();
-        setCheckoutStep(0);
-        setCheckoutProcessingState(false);
-        window.setTimeout(hideSubmitProgress, 1200);
-        window.setTimeout(closeCheckoutModal, 1500);
+        submitStatus.textContent = 'Order received. Redirecting to secure Stripe checkout...';
+        window.location.href = checkoutSession.checkoutUrl;
     } catch (error) {
         setSubmitProgress(100, 'Submission stopped.');
         submitStatus.textContent = error instanceof Error ? error.message : 'Order submission failed.';
