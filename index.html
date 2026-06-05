@@ -66,135 +66,232 @@
         <section class="order-section" id="order">
             <div class="section-heading">
                 <p class="eyebrow">Order your model</p>
-                <h2>Upload the four angles needed to build your print.</h2>
+                <h2>Start checkout in a focused slide-out panel.</h2>
                 <p>
-                    Capture clean shots of the front, back, left, and right sides of your vehicle. The closer the match, the better the resin model.
+                    Keep the page short, launch checkout when ready, and move through details, uploads, and payment in a guided flow.
                 </p>
             </div>
 
-            <form class="order-form" id="orderForm">
-                <div class="form-panels">
-                    <section class="form-panel form-panel--details">
-                        <h3>Your details</h3>
+            <div class="order-launch">
+                <div class="order-launch__copy">
+                    <h3>Checkout without leaving the page.</h3>
+                    <p>Open the right-side modal when you are ready, complete your info, upload all four car photos, and review payment options before final submission.</p>
+                </div>
+                <div class="order-launch__highlights">
+                    <div>
+                        <strong>Step 1</strong>
+                        <span>Customer and shipping details</span>
+                    </div>
+                    <div>
+                        <strong>Step 2</strong>
+                        <span>Front, Back, Left, and Right photo uploads</span>
+                    </div>
+                    <div>
+                        <strong>Step 3</strong>
+                        <span>Stripe first, PayPal alternate, then submit</span>
+                    </div>
+                </div>
+                <button type="button" class="primary-btn order-launch__button" id="openCheckoutButton">Start checkout</button>
+            </div>
+
+            <div class="checkout-modal" id="checkoutModal" hidden>
+                <div class="checkout-modal__backdrop" data-close-checkout></div>
+                <aside class="checkout-modal__panel" aria-labelledby="checkoutTitle" aria-modal="true" role="dialog">
+                    <div class="checkout-modal__header">
+                        <div>
+                            <p class="eyebrow">Secure checkout</p>
+                            <h3 id="checkoutTitle">Build your order in three quick steps.</h3>
+                        </div>
+                        <button type="button" class="checkout-modal__close" data-close-checkout aria-label="Close checkout">×</button>
+                    </div>
+
+                    <div class="checkout-steps" aria-label="Checkout progress">
+                        <button type="button" class="checkout-step is-active" data-step-target="0">
+                            <span>1</span>
+                            <strong>Details</strong>
+                        </button>
+                        <button type="button" class="checkout-step" data-step-target="1">
+                            <span>2</span>
+                            <strong>Uploads</strong>
+                        </button>
+                        <button type="button" class="checkout-step" data-step-target="2">
+                            <span>3</span>
+                            <strong>Review</strong>
+                        </button>
+                    </div>
+
+                    <form class="order-form order-form--modal" id="orderForm">
                         <div class="honeypot-field" aria-hidden="true">
                             <label>
                                 <span>Company</span>
                                 <input type="text" name="company" tabindex="-1" autocomplete="off" />
                             </label>
                         </div>
-                        <label>
-                            <span>First Name</span>
-                            <input type="text" name="firstName" placeholder="First name" required />
-                        </label>
-                        <label>
-                            <span>Last Name</span>
-                            <input type="text" name="lastName" placeholder="Last name" required />
-                        </label>
-                        <label>
-                            <span>Email</span>
-                            <input type="email" name="email" placeholder="you@example.com" required />
-                        </label>
-                        <label>
-                            <span>Phone Number <small>(optional)</small></span>
-                            <input type="tel" name="phone" placeholder="(555) 555-5555" />
-                        </label>
-                        <label>
-                            <span>Street Address</span>
-                            <input type="text" name="street1" placeholder="123 Main St" required />
-                        </label>
-                        <label>
-                            <span>Apt / Suite <small>(optional)</small></span>
-                            <input type="text" name="street2" placeholder="Apt, suite, unit, etc." />
-                        </label>
-                        <label>
-                            <span>City</span>
-                            <input type="text" name="city" placeholder="City" required />
-                        </label>
-                        <label>
-                            <span>State</span>
-                            <input type="text" name="state" placeholder="State" required />
-                        </label>
-                        <label>
-                            <span>Zip Code</span>
-                            <input type="text" name="zipCode" placeholder="Zip code" required />
-                        </label>
 
-                        <fieldset class="finish-options">
-                            <legend>Select finish</legend>
-                            <label class="finish-card">
-                                <input type="radio" name="finish" value="40" checked />
-                                <span>
-                                    <strong>Unpainted</strong>
-                                    <small><s>$50</s> $40</small>
-                                </span>
-                            </label>
-                            <label class="finish-card">
-                                <input type="radio" name="finish" value="80" />
-                                <span>
-                                    <strong>Painted</strong>
-                                    <small><s>$100</s> $80</small>
-                                </span>
-                            </label>
-                        </fieldset>
+                        <section class="checkout-screen is-active" data-checkout-screen="0">
+                            <div class="form-panel form-panel--details">
+                                <h3>Your details</h3>
+                                <div class="checkout-grid checkout-grid--details">
+                                    <label>
+                                        <span>First Name</span>
+                                        <input type="text" name="firstName" placeholder="First name" required />
+                                    </label>
+                                    <label>
+                                        <span>Last Name</span>
+                                        <input type="text" name="lastName" placeholder="Last name" required />
+                                    </label>
+                                    <label>
+                                        <span>Email</span>
+                                        <input type="email" name="email" placeholder="you@example.com" required />
+                                    </label>
+                                    <label>
+                                        <span>Phone Number <small>(optional)</small></span>
+                                        <input type="tel" name="phone" placeholder="(555) 555-5555" />
+                                    </label>
+                                    <label class="checkout-grid__full">
+                                        <span>Street Address</span>
+                                        <input type="text" name="street1" placeholder="123 Main St" required />
+                                    </label>
+                                    <label class="checkout-grid__full">
+                                        <span>Apt / Suite <small>(optional)</small></span>
+                                        <input type="text" name="street2" placeholder="Apt, suite, unit, etc." />
+                                    </label>
+                                    <label>
+                                        <span>City</span>
+                                        <input type="text" name="city" placeholder="City" required />
+                                    </label>
+                                    <label>
+                                        <span>State</span>
+                                        <input type="text" name="state" placeholder="State" required />
+                                    </label>
+                                    <label>
+                                        <span>Zip Code</span>
+                                        <input type="text" name="zipCode" placeholder="Zip code" required />
+                                    </label>
+                                </div>
 
-                        <div class="price-box">
-                            <span>Estimated price</span>
-                            <strong id="priceDisplay">$40</strong>
-                        </div>
+                                <fieldset class="finish-options">
+                                    <legend>Select finish</legend>
+                                    <label class="finish-card">
+                                        <input type="radio" name="finish" value="40" checked />
+                                        <span>
+                                            <strong>Unpainted</strong>
+                                            <small><s>$50</s> $40</small>
+                                        </span>
+                                    </label>
+                                    <label class="finish-card">
+                                        <input type="radio" name="finish" value="80" />
+                                        <span>
+                                            <strong>Painted</strong>
+                                            <small><s>$100</s> $80</small>
+                                        </span>
+                                    </label>
+                                </fieldset>
 
-                        <button type="submit" class="primary-btn">Submit order</button>
-                        <div class="submit-progress" id="submitProgress" hidden>
-                            <div class="submit-progress__top">
-                                <span id="submitProgressLabel">Preparing order...</span>
-                                <strong id="submitProgressPercent">0%</strong>
+                                <div class="price-box">
+                                    <span>Estimated price</span>
+                                    <strong id="priceDisplay">$40</strong>
+                                </div>
                             </div>
-                            <div class="submit-progress__bar">
-                                <span id="submitProgressFill"></span>
-                            </div>
-                        </div>
-                        <p class="form-status" id="submitStatus" aria-live="polite"></p>
-                        <div class="order-result" id="orderResult" hidden>
-                            <span class="order-result__label">Your order GUID</span>
-                            <strong id="guidDisplay"></strong>
-                            <small>Save this GUID with your email to check order status later.</small>
-                        </div>
-                    </section>
+                        </section>
 
-                    <section class="form-panel form-panel--uploads">
-                        <h3>Upload reference photos</h3>
-                        <div class="upload-grid">
-                            <label class="upload-card upload-card--front" data-upload-label="Front">
-                                <input type="file" accept="image/*" data-preview-label="Front" data-field-name="front" required />
-                                <span class="upload-card__badge">Front</span>
-                                <span class="upload-card__hint">Tap to upload a straight-on front photo</span>
-                                <img class="upload-card__reference" src="Images/Ref_Photos/Front.jpg" alt="Front reference photo" />
-                                <img class="upload-card__preview" alt="Front preview" />
-                            </label>
-                            <label class="upload-card upload-card--back" data-upload-label="Back">
-                                <input type="file" accept="image/*" data-preview-label="Back" data-field-name="back" required />
-                                <span class="upload-card__badge">Back</span>
-                                <span class="upload-card__hint">Tap to upload a straight-on rear photo</span>
-                                <img class="upload-card__reference" src="Images/Ref_Photos/Back.jpg" alt="Back reference photo" />
-                                <img class="upload-card__preview" alt="Back preview" />
-                            </label>
-                            <label class="upload-card upload-card--left" data-upload-label="Left">
-                                <input type="file" accept="image/*" data-preview-label="Left" data-field-name="left" required />
-                                <span class="upload-card__badge">Left</span>
-                                <span class="upload-card__hint">Tap to upload the full left side profile</span>
-                                <img class="upload-card__reference" src="Images/Ref_Photos/Left.jpg" alt="Left reference photo" />
-                                <img class="upload-card__preview" alt="Left preview" />
-                            </label>
-                            <label class="upload-card upload-card--right" data-upload-label="Right">
-                                <input type="file" accept="image/*" data-preview-label="Right" data-field-name="right" required />
-                                <span class="upload-card__badge">Right</span>
-                                <span class="upload-card__hint">Tap to upload the full right side profile</span>
-                                <img class="upload-card__reference" src="Images/Ref_Photos/Right.jpg" alt="Right reference photo" />
-                                <img class="upload-card__preview" alt="Right preview" />
-                            </label>
+                        <section class="checkout-screen" data-checkout-screen="1">
+                            <div class="form-panel form-panel--uploads">
+                                <h3>Upload reference photos</h3>
+                                <p class="checkout-screen__copy">Use the guide images below and upload Front, Back, Left, and Right views before continuing.</p>
+                                <div class="upload-grid">
+                                    <label class="upload-card upload-card--front" data-upload-label="Front">
+                                        <input type="file" accept="image/*" data-preview-label="Front" data-field-name="front" required />
+                                        <span class="upload-card__badge">Front</span>
+                                        <span class="upload-card__hint">Tap to upload a straight-on front photo</span>
+                                        <img class="upload-card__reference" src="Images/Ref_Photos/Front.jpg" alt="Front reference photo" />
+                                        <img class="upload-card__preview" alt="Front preview" />
+                                    </label>
+                                    <label class="upload-card upload-card--back" data-upload-label="Back">
+                                        <input type="file" accept="image/*" data-preview-label="Back" data-field-name="back" required />
+                                        <span class="upload-card__badge">Back</span>
+                                        <span class="upload-card__hint">Tap to upload a straight-on rear photo</span>
+                                        <img class="upload-card__reference" src="Images/Ref_Photos/Back.jpg" alt="Back reference photo" />
+                                        <img class="upload-card__preview" alt="Back preview" />
+                                    </label>
+                                    <label class="upload-card upload-card--left" data-upload-label="Left">
+                                        <input type="file" accept="image/*" data-preview-label="Left" data-field-name="left" required />
+                                        <span class="upload-card__badge">Left</span>
+                                        <span class="upload-card__hint">Tap to upload the full left side profile</span>
+                                        <img class="upload-card__reference" src="Images/Ref_Photos/Left.jpg" alt="Left reference photo" />
+                                        <img class="upload-card__preview" alt="Left preview" />
+                                    </label>
+                                    <label class="upload-card upload-card--right" data-upload-label="Right">
+                                        <input type="file" accept="image/*" data-preview-label="Right" data-field-name="right" required />
+                                        <span class="upload-card__badge">Right</span>
+                                        <span class="upload-card__hint">Tap to upload the full right side profile</span>
+                                        <img class="upload-card__reference" src="Images/Ref_Photos/Right.jpg" alt="Right reference photo" />
+                                        <img class="upload-card__preview" alt="Right preview" />
+                                    </label>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="checkout-screen" data-checkout-screen="2">
+                            <div class="form-panel form-panel--review">
+                                <h3>Review and payment</h3>
+                                <p class="checkout-screen__copy">Stripe will be the checkout path for this site, with order creation and payment routing moving through your Cloudflare Worker.</p>
+
+                                <div class="payment-options">
+                                    <label class="payment-card payment-card--primary">
+                                        <input type="radio" name="paymentMethod" value="stripe" checked />
+                                        <span>
+                                            <strong>Stripe</strong>
+                                            <small>Secure checkout through Cloudflare Worker</small>
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="review-card">
+                                    <div>
+                                        <span>Finish selected</span>
+                                        <strong id="reviewFinish">Unpainted</strong>
+                                    </div>
+                                    <div>
+                                        <span>Estimated total</span>
+                                        <strong id="reviewPrice">$40</strong>
+                                    </div>
+                                </div>
+
+                                <div class="submission-loading" id="submissionLoadingPreview">
+                                    <div class="submission-loading__tire"></div>
+                                    <div>
+                                        <strong>Submission preview</strong>
+                                        <p>When you place the order, this step shows a spinning tire while photos compress and upload.</p>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="primary-btn">Continue to checkout</button>
+                                <div class="submit-progress" id="submitProgress" hidden>
+                                    <div class="submit-progress__top">
+                                        <span id="submitProgressLabel">Preparing order...</span>
+                                        <strong id="submitProgressPercent">0%</strong>
+                                    </div>
+                                    <div class="submit-progress__bar">
+                                        <span id="submitProgressFill"></span>
+                                    </div>
+                                </div>
+                                <p class="form-status" id="submitStatus" aria-live="polite"></p>
+                                <div class="order-result" id="orderResult" hidden>
+                                    <span class="order-result__label">Your order GUID</span>
+                                    <strong id="guidDisplay"></strong>
+                                    <small>Save this GUID with your email to check order status later.</small>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="checkout-actions">
+                            <button type="button" class="secondary-btn" id="checkoutBackButton">Back</button>
+                            <button type="button" class="primary-btn" id="checkoutNextButton">Next step</button>
                         </div>
-                    </section>
-                </div>
-            </form>
+                    </form>
+                </aside>
+            </div>
 
             <section class="lookup-panel">
                 <div class="lookup-panel__copy">

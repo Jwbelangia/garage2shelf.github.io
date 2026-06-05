@@ -3,9 +3,18 @@ const featuredSlides = featuredCarousel ? Array.from(featuredCarousel.querySelec
 const dotsContainer = document.querySelector('[data-dots="featured"]');
 const prevButton = document.querySelector('[data-action="prev"][data-target="featured"]');
 const nextButton = document.querySelector('[data-action="next"][data-target="featured"]');
+const openCheckoutButton = document.getElementById('openCheckoutButton');
+const checkoutModal = document.getElementById('checkoutModal');
+const checkoutCloseButtons = Array.from(document.querySelectorAll('[data-close-checkout]'));
+const checkoutStepButtons = Array.from(document.querySelectorAll('.checkout-step'));
+const checkoutScreens = Array.from(document.querySelectorAll('.checkout-screen'));
+const checkoutBackButton = document.getElementById('checkoutBackButton');
+const checkoutNextButton = document.getElementById('checkoutNextButton');
 const orderForm = document.getElementById('orderForm');
 const finishInputs = Array.from(document.querySelectorAll('input[name="finish"]'));
 const priceDisplay = document.getElementById('priceDisplay');
+const reviewFinish = document.getElementById('reviewFinish');
+const reviewPrice = document.getElementById('reviewPrice');
 const uploadInputs = Array.from(document.querySelectorAll('.upload-card input[type="file"]'));
 const submitStatus = document.getElementById('submitStatus');
 const submitProgress = document.getElementById('submitProgress');
@@ -26,13 +35,14 @@ const shippingLabelLink = document.getElementById('shippingLabelLink');
 const trackingQr = document.getElementById('trackingQr');
 const trackingQrImage = document.getElementById('trackingQrImage');
 const showcaseCards = Array.from(document.querySelectorAll('.showcase-card'));
-const config = window.GARAGE2SHELF_CONFIG || { appsScriptUrl: '', sheetName: 'OrderSheet' };
+const config = window.GARAGE2SHELF_CONFIG || { apiBaseUrl: '', sheetName: 'OrderSheet' };
 
 let featuredIndex = 0;
 let featuredIntervalId = null;
 let showcaseIndex = 0;
 let touchStartX = 0;
 let touchEndX = 0;
+let checkoutStepIndex = 0;
 
 function renderFeaturedDots() {
     if (!dotsContainer) {
@@ -139,23 +149,122 @@ function startShowcaseFader() {
 
 function updatePrice() {
     const selected = finishInputs.find((input) => input.checked);
-    const value = selected ? Number(selected.value) : 35;
+    const value = selected ? Number(selected.value) : 40;
     if (priceDisplay) {
         priceDisplay.textContent = `$${value}`;
+    }
+
+    if (reviewPrice) {
+        reviewPrice.textContent = `$${value}`;
+    }
+
+    if (reviewFinish) {
+        reviewFinish.textContent = getSelectedFinish().label;
     }
 }
 
 function getSelectedFinish() {
     const selected = finishInputs.find((input) => input.checked);
     if (!selected) {
-        return { label: 'Resin Unprimed', price: 35 };
+        return { label: 'Unpainted', price: 40 };
     }
 
-    const label = selected.closest('.finish-card')?.querySelector('strong')?.textContent?.trim() || 'Resin Unprimed';
+    const label = selected.closest('.finish-card')?.querySelector('strong')?.textContent?.trim() || 'Unpainted';
     return {
         label,
         price: Number(selected.value)
     };
+}
+
+function syncReviewStep() {
+    const finish = getSelectedFinish();
+    if (reviewFinish) {
+        reviewFinish.textContent = finish.label;
+    }
+    if (reviewPrice) {
+        reviewPrice.textContent = `$${finish.price}`;
+    }
+}
+
+function updateCheckoutControls() {
+    checkoutStepButtons.forEach((button, index) => {
+        button.classList.toggle('is-active', index === checkoutStepIndex);
+    });
+
+    checkoutScreens.forEach((screen, index) => {
+        screen.classList.toggle('is-active', index === checkoutStepIndex);
+    });
+
+    if (checkoutBackButton) {
+        checkoutBackButton.hidden = checkoutStepIndex === 0;
+    }
+
+    if (checkoutNextButton) {
+        checkoutNextButton.hidden = checkoutStepIndex === checkoutScreens.length - 1;
+    }
+}
+
+function validateCheckoutStep(index) {
+    if (!orderForm) {
+        return false;
+    }
+
+    if (index === 0) {
+        const requiredFields = Array.from(orderForm.querySelectorAll('[name="firstName"], [name="lastName"], [name="email"], [name="street1"], [name="city"], [name="state"], [name="zipCode"]'));
+        const invalidField = requiredFields.find((field) => !field.reportValidity());
+        return !invalidField;
+    }
+
+    if (index === 1) {
+        const missingUpload = uploadInputs.find((input) => !(input.files && input.files[0]));
+        if (missingUpload) {
+            missingUpload.reportValidity();
+            submitStatus.textContent = 'Please upload Front, Back, Left, and Right photos before continuing.';
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function setCheckoutStep(index) {
+    const boundedIndex = Math.max(0, Math.min(index, checkoutScreens.length - 1));
+    checkoutStepIndex = boundedIndex;
+    if (checkoutStepIndex === checkoutScreens.length - 1) {
+        syncReviewStep();
+    }
+    updateCheckoutControls();
+}
+
+function openCheckoutModal() {
+    if (!checkoutModal) {
+        return;
+    }
+
+    checkoutModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    setCheckoutStep(checkoutStepIndex);
+}
+
+function closeCheckoutModal() {
+    if (!checkoutModal) {
+        return;
+    }
+
+    checkoutModal.hidden = true;
+    document.body.style.overflow = '';
+}
+
+function goToNextCheckoutStep() {
+    if (!validateCheckoutStep(checkoutStepIndex)) {
+        return;
+    }
+
+    setCheckoutStep(checkoutStepIndex + 1);
+}
+
+function goToPreviousCheckoutStep() {
+    setCheckoutStep(checkoutStepIndex - 1);
 }
 
 function handleUploadPreview(event) {
@@ -296,11 +405,14 @@ async function buildSubmissionPayload() {
 }
 
 async function postJson(payload) {
-    if (!config.appsScriptUrl) {
-        throw new Error('Add your Apps Script web app URL in config.js before using submit or lookup.');
+    if (!config.apiBaseUrl) {
+        throw new Error('Add your Cloudflare Worker URL in config.js before using submit or lookup.');
     }
 
-    const response = await fetch(config.appsScriptUrl, {
+    const path = payload.action === 'lookupOrder' ? '/api/order/lookup' : '/api/order/create';
+    const requestUrl = `${config.apiBaseUrl.replace(/\/$/, '')}${path}`;
+
+    const response = await fetch(requestUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'text/plain;charset=utf-8'
@@ -361,6 +473,15 @@ async function handleOrderSubmit(event) {
         return;
     }
 
+    if (!validateCheckoutStep(0) || !validateCheckoutStep(1)) {
+        if (!validateCheckoutStep(0)) {
+            setCheckoutStep(0);
+        } else {
+            setCheckoutStep(1);
+        }
+        return;
+    }
+
     submitStatus.textContent = 'Starting your order submission...';
     if (orderResult) {
         orderResult.hidden = true;
@@ -385,10 +506,13 @@ async function handleOrderSubmit(event) {
             orderResult.hidden = !result.guid;
         }
 
+        submitStatus.textContent = 'Order received. Stripe checkout will hook into this final step through the Worker next.';
         orderForm.reset();
         updatePrice();
         resetUploadPreviews();
+        setCheckoutStep(0);
         window.setTimeout(hideSubmitProgress, 1200);
+        window.setTimeout(closeCheckoutModal, 1500);
     } catch (error) {
         setSubmitProgress(100, 'Submission stopped.');
         submitStatus.textContent = error instanceof Error ? error.message : 'Order submission failed.';
@@ -492,6 +616,33 @@ uploadInputs.forEach((input) => {
 
 orderForm?.addEventListener('submit', handleOrderSubmit);
 lookupForm?.addEventListener('submit', handleLookupSubmit);
+
+openCheckoutButton?.addEventListener('click', openCheckoutModal);
+checkoutCloseButtons.forEach((button) => {
+    button.addEventListener('click', closeCheckoutModal);
+});
+checkoutNextButton?.addEventListener('click', goToNextCheckoutStep);
+checkoutBackButton?.addEventListener('click', goToPreviousCheckoutStep);
+checkoutStepButtons.forEach((button, index) => {
+    button.addEventListener('click', () => {
+        if (index <= checkoutStepIndex) {
+            setCheckoutStep(index);
+            return;
+        }
+
+        if (validateCheckoutStep(checkoutStepIndex)) {
+            setCheckoutStep(index);
+        }
+    });
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && checkoutModal && !checkoutModal.hidden) {
+        closeCheckoutModal();
+    }
+});
+
+updateCheckoutControls();
 
 setShowcaseCard(0);
 startShowcaseFader();
