@@ -11,6 +11,7 @@ const checkoutScreens = Array.from(document.querySelectorAll('.checkout-screen')
 const checkoutBackButton = document.getElementById('checkoutBackButton');
 const checkoutNextButton = document.getElementById('checkoutNextButton');
 const orderForm = document.getElementById('orderForm');
+const checkoutSubmitButton = orderForm ? orderForm.querySelector('button[type="submit"]') : null;
 const finishInputs = Array.from(document.querySelectorAll('input[name="finish"]'));
 const priceDisplay = document.getElementById('priceDisplay');
 const reviewFinish = document.getElementById('reviewFinish');
@@ -43,6 +44,7 @@ let showcaseIndex = 0;
 let touchStartX = 0;
 let touchEndX = 0;
 let checkoutStepIndex = 0;
+let isCheckoutProcessing = false;
 
 function renderFeaturedDots() {
     if (!dotsContainer) {
@@ -82,6 +84,35 @@ function setSubmitProgress(percent, label) {
 function hideSubmitProgress() {
     if (submitProgress) {
         submitProgress.hidden = true;
+    }
+}
+
+function setCheckoutProcessingState(isProcessing) {
+    isCheckoutProcessing = isProcessing;
+
+    if (checkoutModal) {
+        checkoutModal.dataset.processing = isProcessing ? 'true' : 'false';
+    }
+
+    if (checkoutSubmitButton) {
+        checkoutSubmitButton.disabled = isProcessing;
+        checkoutSubmitButton.textContent = isProcessing ? 'Processing...' : 'Continue to checkout';
+    }
+
+    if (checkoutBackButton) {
+        checkoutBackButton.disabled = isProcessing;
+    }
+
+    if (checkoutNextButton) {
+        checkoutNextButton.disabled = isProcessing;
+    }
+
+    checkoutStepButtons.forEach((button) => {
+        button.disabled = isProcessing;
+    });
+
+    if (openCheckoutButton) {
+        openCheckoutButton.disabled = isProcessing;
     }
 }
 
@@ -247,7 +278,7 @@ function openCheckoutModal() {
 }
 
 function closeCheckoutModal() {
-    if (!checkoutModal) {
+    if (!checkoutModal || isCheckoutProcessing) {
         return;
     }
 
@@ -256,6 +287,10 @@ function closeCheckoutModal() {
 }
 
 function goToNextCheckoutStep() {
+    if (isCheckoutProcessing) {
+        return;
+    }
+
     if (!validateCheckoutStep(checkoutStepIndex)) {
         return;
     }
@@ -264,6 +299,10 @@ function goToNextCheckoutStep() {
 }
 
 function goToPreviousCheckoutStep() {
+    if (isCheckoutProcessing) {
+        return;
+    }
+
     setCheckoutStep(checkoutStepIndex - 1);
 }
 
@@ -469,7 +508,7 @@ function resetUploadPreviews() {
 
 async function handleOrderSubmit(event) {
     event.preventDefault();
-    if (!submitStatus) {
+    if (!submitStatus || isCheckoutProcessing) {
         return;
     }
 
@@ -486,6 +525,7 @@ async function handleOrderSubmit(event) {
     if (orderResult) {
         orderResult.hidden = true;
     }
+    setCheckoutProcessingState(true);
     setSubmitProgress(0, 'Starting...');
 
     try {
@@ -511,11 +551,13 @@ async function handleOrderSubmit(event) {
         updatePrice();
         resetUploadPreviews();
         setCheckoutStep(0);
+        setCheckoutProcessingState(false);
         window.setTimeout(hideSubmitProgress, 1200);
         window.setTimeout(closeCheckoutModal, 1500);
     } catch (error) {
         setSubmitProgress(100, 'Submission stopped.');
         submitStatus.textContent = error instanceof Error ? error.message : 'Order submission failed.';
+        setCheckoutProcessingState(false);
     }
 }
 
@@ -625,6 +667,10 @@ checkoutNextButton?.addEventListener('click', goToNextCheckoutStep);
 checkoutBackButton?.addEventListener('click', goToPreviousCheckoutStep);
 checkoutStepButtons.forEach((button, index) => {
     button.addEventListener('click', () => {
+        if (isCheckoutProcessing) {
+            return;
+        }
+
         if (index <= checkoutStepIndex) {
             setCheckoutStep(index);
             return;
@@ -637,7 +683,7 @@ checkoutStepButtons.forEach((button, index) => {
 });
 
 document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && checkoutModal && !checkoutModal.hidden) {
+    if (event.key === 'Escape' && checkoutModal && !checkoutModal.hidden && !isCheckoutProcessing) {
         closeCheckoutModal();
     }
 });
