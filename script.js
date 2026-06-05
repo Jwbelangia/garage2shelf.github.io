@@ -22,6 +22,7 @@ const submitProgress = document.getElementById('submitProgress');
 const submitProgressLabel = document.getElementById('submitProgressLabel');
 const submitProgressPercent = document.getElementById('submitProgressPercent');
 const submitProgressFill = document.getElementById('submitProgressFill');
+const submitProgressNote = document.getElementById('submitProgressNote');
 const orderResult = document.getElementById('orderResult');
 const guidDisplay = document.getElementById('guidDisplay');
 const lookupForm = document.getElementById('lookupForm');
@@ -65,7 +66,7 @@ function renderFeaturedDots() {
     });
 }
 
-function setSubmitProgress(percent, label) {
+function setSubmitProgress(percent, label, note = '') {
     const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
     if (submitProgress) {
         submitProgress.hidden = false;
@@ -78,6 +79,9 @@ function setSubmitProgress(percent, label) {
     }
     if (submitProgressFill) {
         submitProgressFill.style.width = `${safePercent}%`;
+    }
+    if (submitProgressNote) {
+        submitProgressNote.textContent = note;
     }
 }
 
@@ -412,17 +416,18 @@ async function buildSubmissionPayload() {
     const totalSteps = Math.max(activeInputs.length + 2, 3);
     let currentStep = 0;
 
-    setSubmitProgress(5, 'Preparing your order...');
+    setSubmitProgress(8, 'Preparing your order...', 'Checking your order details and getting your uploads ready.');
 
     for (const input of activeInputs) {
         const file = input.files && input.files[0];
         const fieldName = input.dataset.fieldName;
         currentStep += 1;
-        setSubmitProgress((currentStep / totalSteps) * 100, `Compressing ${input.dataset.previewLabel || fieldName} photo...`);
+        const stagePercent = 12 + ((currentStep - 1) / activeInputs.length) * 36;
+        setSubmitProgress(stagePercent, `Optimizing ${input.dataset.previewLabel || fieldName} photo...`, 'Reducing upload size so your order submits faster.');
         files[fieldName] = await compressImageFile(file);
     }
 
-    setSubmitProgress(((totalSteps - 1) / totalSteps) * 100, 'Preparing upload...');
+    setSubmitProgress(52, 'Finalizing upload package...', 'Bundling your four photos and order details for secure transfer.');
 
     return {
         action: 'submitOrder',
@@ -555,22 +560,22 @@ async function handleOrderSubmit(event) {
         return;
     }
 
-    submitStatus.textContent = 'Starting your order submission...';
+    submitStatus.textContent = 'Starting your order...';
     if (orderResult) {
         orderResult.hidden = true;
     }
     setCheckoutProcessingState(true);
-    setSubmitProgress(0, 'Starting...');
+    setSubmitProgress(0, 'Starting...', 'Opening a secure order session.');
 
     try {
         const payload = await buildSubmissionPayload();
-        setSubmitProgress(92, 'Uploading photos and order details...');
+        setSubmitProgress(68, 'Uploading photos and order details...', 'Sending your order to the secure order system.');
         const result = await postJson(payload);
         if (!result.success) {
             throw new Error(result.message || 'Order submission failed.');
         }
 
-        setSubmitProgress(96, 'Creating secure Stripe checkout...');
+        setSubmitProgress(84, 'Order created successfully.', 'Your order number is ready. Preparing secure checkout next.');
         const checkoutSession = await createStripeCheckoutSession({
             guid: result.guid || '',
             email: payload.email,
@@ -585,7 +590,8 @@ async function handleOrderSubmit(event) {
             zipCode: payload.zipCode
         });
 
-        setSubmitProgress(100, 'Order submitted successfully.');
+        setSubmitProgress(95, 'Preparing secure Stripe checkout...', 'Passing your order into Stripe with your customer details prefilled.');
+        setSubmitProgress(100, 'Secure checkout ready.', 'Redirecting you to Stripe now.');
         submitStatus.textContent = result.message || 'Order submitted successfully.';
         if (guidDisplay) {
             guidDisplay.textContent = result.guid || '';
@@ -598,7 +604,7 @@ async function handleOrderSubmit(event) {
         submitStatus.textContent = 'Order received. Redirecting to secure Stripe checkout...';
         window.location.href = checkoutSession.checkoutUrl;
     } catch (error) {
-        setSubmitProgress(100, 'Submission stopped.');
+        setSubmitProgress(100, 'Submission stopped.', 'Your order was not completed. Please review the message below and try again.');
         submitStatus.textContent = error instanceof Error ? error.message : 'Order submission failed.';
         setCheckoutProcessingState(false);
     }

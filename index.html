@@ -20,12 +20,8 @@
 </head>
 <body>
     <header class="hero">
-        <div class="hero__copy">
-            <p class="eyebrow">Custom 3D Resin Car Prints</p>
-            <h1>Turn your personal car into a display-ready resin model.</h1>
-            <p class="hero__text">
-                Send the key angles of your vehicle, choose the finish, and receive a handcrafted resin print made from your exact car.
-            </p>
+        <div class="hero__banner-frame">
+            <img src="Images/Garage2ShelfBanner.png" alt="Garage 2 Shelf promotional banner" class="hero__banner" />
         </div>
 
         <div class="hero__media">
@@ -64,18 +60,11 @@
 
     <main>
         <section class="order-section" id="order">
-            <div class="section-heading">
-                <p class="eyebrow">Order your model</p>
-                <h2>Start checkout in a focused slide-out panel.</h2>
-                <p>
-                    Keep the page short, launch checkout when ready, and move through details, uploads, and payment in a guided flow.
-                </p>
-            </div>
-
             <div class="order-launch">
                 <div class="order-launch__copy">
-                    <h3>Checkout without leaving the page.</h3>
-                    <p>Open the right-side modal when you are ready, complete your info, upload all four car photos, and review payment options before final submission.</p>
+                    <p class="eyebrow">Garage 2 Shelf checkout</p>
+                    <h3>Upload four photos and move through a clean, secure checkout flow.</h3>
+                    <p>Start your order in the panel below, add the required views, and continue into secure Stripe checkout once your order number is created.</p>
                 </div>
                 <div class="order-launch__highlights">
                     <div>
@@ -88,7 +77,7 @@
                     </div>
                     <div>
                         <strong>Step 3</strong>
-                        <span>Stripe first, PayPal alternate, then submit</span>
+                        <span>Review and continue to secure checkout</span>
                     </div>
                 </div>
                 <button type="button" class="primary-btn order-launch__button" id="openCheckoutButton">Start checkout</button>
@@ -235,7 +224,7 @@
                         <section class="checkout-screen" data-checkout-screen="2">
                             <div class="form-panel form-panel--review">
                                 <h3>Review and payment</h3>
-                                <p class="checkout-screen__copy">Stripe will be the checkout path for this site, with order creation and payment routing moving through your Cloudflare Worker.</p>
+                                <p class="checkout-screen__copy">Review your finish selection and continue into secure Stripe checkout.</p>
 
                                 <div class="payment-options">
                                     <label class="payment-card payment-card--primary">
@@ -258,23 +247,16 @@
                                     </div>
                                 </div>
 
-                                <div class="submission-loading" id="submissionLoadingPreview">
-                                    <div class="submission-loading__tire"></div>
-                                    <div>
-                                        <strong>Submission preview</strong>
-                                        <p>When you place the order, this step shows a spinning tire while photos compress and upload.</p>
-                                    </div>
-                                </div>
-
-                                <button type="submit" class="primary-btn">Continue to Stripe checkout</button>
+                                <button type="submit" class="primary-btn">Proceed to secure checkout</button>
                                 <div class="submit-progress" id="submitProgress" hidden>
                                     <div class="submit-progress__top">
-                                        <span id="submitProgressLabel">Preparing order...</span>
+                                        <span id="submitProgressLabel">Preparing your order...</span>
                                         <strong id="submitProgressPercent">0%</strong>
                                     </div>
                                     <div class="submit-progress__bar">
                                         <span id="submitProgressFill"></span>
                                     </div>
+                                    <p class="submit-progress__note" id="submitProgressNote">We’ll confirm each stage as your order is prepared for secure checkout.</p>
                                 </div>
                                 <p class="form-status" id="submitStatus" aria-live="polite"></p>
                                 <div class="order-result" id="orderResult" hidden>
