@@ -191,6 +191,18 @@ function updateSavedOrderPanel(orderReference) {
     if (savedOrderNumberDisplay) {
         savedOrderNumberDisplay.textContent = orderReference?.orderNumber || '';
     }
+    if (savedOrderEmailDisplay) {
+        savedOrderEmailDisplay.textContent = orderReference?.email || '';
+    }
+
+    if (savedOrderFinishDisplay) {
+        savedOrderFinishDisplay.textContent = orderReference?.finish || '';
+    }
+
+    if (savedOrderPanel) {
+        savedOrderPanel.hidden = !orderReference;
+    }
+}
 
 function formatDiscountPercent(discountMultiplier) {
     const value = Number(discountMultiplier);
