@@ -698,31 +698,40 @@ function handleUploadPreview(event) {
     }
 
     if (!file) {
+        if (preview.dataset.objectUrl) {
+            URL.revokeObjectURL(preview.dataset.objectUrl);
+            delete preview.dataset.objectUrl;
+        }
         preview.removeAttribute('src');
         card.classList.remove('has-image');
         syncUploadProgress();
         return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-        preview.src = String(reader.result);
-        card.classList.add('has-image');
-        syncUploadProgress();
-    };
-    reader.readAsDataURL(file);
+    if (preview.dataset.objectUrl) {
+        URL.revokeObjectURL(preview.dataset.objectUrl);
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    preview.dataset.objectUrl = objectUrl;
+    preview.src = objectUrl;
+    card.classList.add('has-image');
+    syncUploadProgress();
+}
+
+function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error(`Could not read file ${file.name}.`));
+        reader.readAsDataURL(file);
+    });
 }
 
 function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const result = String(reader.result);
-            const [, base64 = ''] = result.split(',');
-            resolve(base64);
-        };
-        reader.onerror = () => reject(new Error(`Could not read file ${file.name}.`));
-        reader.readAsDataURL(file);
+    return readFileAsDataUrl(file).then((result) => {
+        const [, base64 = ''] = result.split(',');
+        return base64;
     });
 }
 
@@ -744,40 +753,56 @@ async function compressImageFile(file) {
         };
     }
 
-    const sourceDataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(new Error(`Could not read file ${file.name}.`));
-        reader.readAsDataURL(file);
-    });
+    const originalDataUrl = await readFileAsDataUrl(file);
+    const [, originalBase64 = ''] = originalDataUrl.split(',');
 
-    const image = await loadImageElement(sourceDataUrl);
-    const maxDimension = 1600;
-    const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
-    const targetWidth = Math.max(1, Math.round(image.width * scale));
-    const targetHeight = Math.max(1, Math.round(image.height * scale));
-    const canvas = document.createElement('canvas');
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-
-    const context = canvas.getContext('2d');
-    if (!context) {
-        throw new Error('Could not prepare image compression canvas.');
+    if (file.type === 'image/gif' || file.type === 'image/svg+xml') {
+        return {
+            fileName: file.name,
+            mimeType: file.type,
+            content: originalBase64
+        };
     }
 
-    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+    try {
+        const image = await loadImageElement(originalDataUrl);
+        const maxDimension = 1600;
+        const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+        const targetWidth = Math.max(1, Math.round(image.width * scale));
+        const targetHeight = Math.max(1, Math.round(image.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
 
-    const outputMimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-    const quality = outputMimeType === 'image/png' ? undefined : 0.82;
-    const compressedDataUrl = canvas.toDataURL(outputMimeType, quality);
-    const [, base64 = ''] = compressedDataUrl.split(',');
-    const extension = outputMimeType === 'image/png' ? '.png' : '.jpg';
+        const context = canvas.getContext('2d');
+        if (!context) {
+            throw new Error('Could not prepare image compression canvas.');
+        }
 
-    return {
-        fileName: file.name.replace(/\.[^.]+$/, '') + extension,
-        mimeType: outputMimeType,
-        content: base64
-    };
+        context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+        const outputMimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const quality = outputMimeType === 'image/png' ? undefined : 0.82;
+        const compressedDataUrl = canvas.toDataURL(outputMimeType, quality);
+        const [, base64 = ''] = compressedDataUrl.split(',');
+        const extension = outputMimeType === 'image/png' ? '.png' : '.jpg';
+
+        if (!base64) {
+            throw new Error('Compressed image output was empty.');
+        }
+
+        return {
+            fileName: file.name.replace(/\.[^.]+$/, '') + extension,
+            mimeType: outputMimeType,
+            content: base64
+        };
+    } catch {
+        return {
+            fileName: file.name,
+            mimeType: file.type || 'application/octet-stream',
+            content: originalBase64
+        };
+    }
 }
 
 async function buildSubmissionPayload() {
@@ -927,6 +952,10 @@ function resetUploadPreviews() {
         const card = input.closest('.upload-card');
         const preview = card?.querySelector('.upload-card__preview');
         if (preview) {
+            if (preview.dataset.objectUrl) {
+                URL.revokeObjectURL(preview.dataset.objectUrl);
+                delete preview.dataset.objectUrl;
+            }
             preview.removeAttribute('src');
         }
         card?.classList.remove('has-image');
