@@ -75,6 +75,20 @@ function renderFeaturedDots() {
         return;
     }
 
+    dotsContainer.innerHTML = '';
+    featuredSlides.forEach((_, index) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.classList.toggle('is-active', index === featuredIndex);
+        dot.setAttribute('aria-label', `Go to image ${index + 1}`);
+        dot.addEventListener('click', () => {
+            setFeaturedSlide(index);
+            restartFeaturedTimer();
+        });
+        dotsContainer.appendChild(dot);
+    });
+}
+
 function clearLatestOrderReference() {
     try {
         window.localStorage.removeItem(ORDER_REFERENCE_STORAGE_KEY);
