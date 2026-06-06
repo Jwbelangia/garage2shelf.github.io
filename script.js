@@ -98,6 +98,27 @@ function saveLatestOrderReference(orderReference) {
     }
 }
 
+function loadLatestOrderReference() {
+    try {
+        const raw = window.localStorage.getItem(ORDER_REFERENCE_STORAGE_KEY);
+        const localReference = raw ? JSON.parse(raw) : null;
+        if (localReference?.orderNumber) {
+            return localReference;
+        }
+    } catch {
+        // Ignore storage failures.
+    }
+
+    const cookieMatch = document.cookie.match(new RegExp(`(?:^|; )${ORDER_REFERENCE_COOKIE_KEY}=([^;]*)`));
+    if (!cookieMatch) {
+        return null;
+    }
+
+    return {
+        orderNumber: decodeURIComponent(cookieMatch[1])
+    };
+}
+
 function canResumeSavedOrder(orderReference) {
     return Boolean(
         orderReference?.paymentStatus === 'pending'
@@ -285,19 +306,6 @@ async function validatePromoCode() {
     updatePromoSummary();
 }
 
-    if (savedOrderEmailDisplay) {
-        savedOrderEmailDisplay.textContent = orderReference?.email || '';
-    }
-
-    if (savedOrderFinishDisplay) {
-        savedOrderFinishDisplay.textContent = orderReference?.finish || '';
-    }
-
-    if (savedOrderPanel) {
-        savedOrderPanel.hidden = !orderReference;
-    }
-}
-
 function showResumeOrderPrompt(orderReference) {
     if (!resumeOrderModal) {
         return;
@@ -331,6 +339,7 @@ function resetCheckoutForNewOrder() {
     updateSavedOrderPanel(null);
     orderForm?.reset();
     resetUploadPreviews();
+    clearPromoState();
     updatePrice();
     setCheckoutStep(0);
     if (submitStatus) {
@@ -364,22 +373,6 @@ function handleOpenCheckout() {
     resetCheckoutForNewOrder();
     openCheckoutModal();
 }
-
-function loadLatestOrderReference() {
-    try {
-        const raw = window.localStorage.getItem(ORDER_REFERENCE_STORAGE_KEY);
-        const localReference = raw ? JSON.parse(raw) : null;
-        if (localReference?.orderNumber) {
-            return localReference;
-        }
-    } catch {
-        // Ignore storage failures.
-    }
-
-    const cookieMatch = document.cookie.match(new RegExp(`(?:^|; )${ORDER_REFERENCE_COOKIE_KEY}=([^;]*)`));
-    if (!cookieMatch) {
-        return null;
-    }
 
     return {
         orderNumber: decodeURIComponent(cookieMatch[1])
