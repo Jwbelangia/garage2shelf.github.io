@@ -400,11 +400,6 @@ function handleOpenCheckout() {
     openCheckoutModal();
 }
 
-    return {
-        orderNumber: decodeURIComponent(cookieMatch[1])
-    };
-}
-
 function showOrderReference(orderNumber) {
     if (guidDisplay) {
         guidDisplay.textContent = orderNumber;
