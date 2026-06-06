@@ -24,8 +24,60 @@
                     <strong>Use your Order Number on the order lookup form</strong>
                 </div>
             </div>
+            <div class="saved-order-panel saved-order-panel--prompt" id="returnOrderPanel" hidden>
+                <div>
+                    <span>Your Order Number</span>
+                    <strong id="returnOrderNumber"></strong>
+                </div>
+                <div>
+                    <span>Payment status</span>
+                    <strong>Paid successfully</strong>
+                </div>
+            </div>
             <a class="primary-btn" href="/">Return to Garage 2 Shelf</a>
         </section>
     </main>
+    <script>
+        (function () {
+            const storageKey = 'garage2shelf-last-order';
+            const cookieKey = 'garage2shelf_order_number';
+            const panel = document.getElementById('returnOrderPanel');
+            const numberDisplay = document.getElementById('returnOrderNumber');
+
+            let orderReference = null;
+            try {
+                const raw = window.localStorage.getItem(storageKey);
+                orderReference = raw ? JSON.parse(raw) : null;
+            } catch {
+                orderReference = null;
+            }
+
+            if (!orderReference?.orderNumber) {
+                const cookieMatch = document.cookie.match(new RegExp('(?:^|; )' + cookieKey + '=([^;]*)'));
+                if (cookieMatch) {
+                    orderReference = { orderNumber: decodeURIComponent(cookieMatch[1]) };
+                }
+            }
+
+            if (orderReference?.orderNumber) {
+                if (numberDisplay) {
+                    numberDisplay.textContent = orderReference.orderNumber;
+                }
+                if (panel) {
+                    panel.hidden = false;
+                }
+            }
+
+            document.cookie = cookieKey + '=; max-age=0; path=/; SameSite=Lax';
+            if (orderReference?.orderNumber) {
+                orderReference.paymentStatus = 'paid';
+                try {
+                    window.localStorage.setItem(storageKey, JSON.stringify(orderReference));
+                } catch {
+                    // Ignore storage failures.
+                }
+            }
+        }());
+    </script>
 </body>
 </html>

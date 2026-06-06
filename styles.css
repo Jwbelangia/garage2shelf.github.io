@@ -316,6 +316,115 @@ h1 {
     margin: 0;
 }
 
+.resume-order-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+}
+
+.resume-order-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 6, 10, 0.78);
+    backdrop-filter: blur(6px);
+}
+
+.resume-order-modal__panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(520px, calc(100% - 2rem));
+    padding: 1.5rem;
+    border-radius: 28px;
+    border: 1px solid rgba(255, 206, 86, 0.16);
+    background:
+        linear-gradient(140deg, rgba(255, 196, 46, 0.07), transparent 22%),
+        linear-gradient(180deg, rgba(28, 20, 10, 0.98), rgba(12, 12, 12, 0.98));
+    box-shadow: var(--shadow);
+}
+
+.resume-order-modal__actions {
+    display: grid;
+    gap: 0.85rem;
+    margin-top: 1.25rem;
+}
+
+.saved-order-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.1rem;
+    border-radius: 22px;
+    border: 1px solid rgba(255, 206, 86, 0.16);
+    background:
+        linear-gradient(100deg, rgba(255, 196, 46, 0.06), transparent 22%),
+        rgba(255, 255, 255, 0.03);
+}
+
+.saved-order-panel--prompt {
+    margin-top: 1rem;
+}
+
+.saved-order-panel strong {
+    display: block;
+    margin-top: 0.35rem;
+}
+
+.promo-panel {
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.1rem;
+    border-radius: 22px;
+    border: 1px solid rgba(255, 206, 86, 0.14);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.promo-panel__field {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.promo-panel__input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+}
+
+.promo-panel__field input[type="text"] {
+    width: 100%;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(8, 8, 8, 0.78);
+    color: var(--text);
+}
+
+.promo-panel__button {
+    width: auto;
+    min-width: 130px;
+    margin-top: 0;
+}
+
+.promo-panel__status {
+    min-height: 1.25rem;
+    margin-top: 0.85rem;
+}
+
+.promo-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(255, 206, 86, 0.12);
+}
+
+.promo-summary strong {
+    display: block;
+    margin-top: 0.3rem;
+}
+
 .checkout-modal {
     position: fixed;
     inset: 0;
@@ -994,7 +1103,8 @@ h1 {
     }
 
     .review-card,
-    .checkout-steps {
+    .checkout-steps,
+    .promo-summary {
         grid-template-columns: 1fr;
     }
 }

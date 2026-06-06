@@ -13,3 +13,4 @@
 - Prefer a lightweight Cloudflare server to keep sensitive integration details off the client while still connecting to Google Sheets. 
 - Reuse the same Cloudflare and Stripe accounts across multiple sites while keeping each site's integration separated.
 - Update Garage2Shelf pricing to Unpainted $50 and Painted $100 instead of $40/$80.
+- Use Stripe coupon-based discounts for promo codes instead of custom-calculated discount amounts, utilizing multiplier values from the Promocodes sheet, e.g. 0.95 means a 5% discount.

@@ -4,6 +4,12 @@ const dotsContainer = document.querySelector('[data-dots="featured"]');
 const prevButton = document.querySelector('[data-action="prev"][data-target="featured"]');
 const nextButton = document.querySelector('[data-action="next"][data-target="featured"]');
 const openCheckoutButton = document.getElementById('openCheckoutButton');
+const resumeOrderModal = document.getElementById('resumeOrderModal');
+const resumeOrderBackdrop = document.getElementById('resumeOrderBackdrop');
+const resumeSavedOrderButton = document.getElementById('resumeSavedOrderButton');
+const startFreshOrderButton = document.getElementById('startFreshOrderButton');
+const resumePromptOrderNumber = document.getElementById('resumePromptOrderNumber');
+const resumePromptEmail = document.getElementById('resumePromptEmail');
 const checkoutModal = document.getElementById('checkoutModal');
 const checkoutCloseButtons = Array.from(document.querySelectorAll('[data-close-checkout]'));
 const checkoutStepButtons = Array.from(document.querySelectorAll('.checkout-step'));
@@ -19,12 +25,23 @@ const reviewPrice = document.getElementById('reviewPrice');
 const uploadInputs = Array.from(document.querySelectorAll('.upload-card input[type="file"]'));
 const uploadProgressCount = document.getElementById('uploadProgressCount');
 const uploadProgressPills = Array.from(document.querySelectorAll('[data-upload-pill]'));
+const promoCodeInput = document.getElementById('promoCodeInput');
+const applyPromoButton = document.getElementById('applyPromoButton');
+const promoStatus = document.getElementById('promoStatus');
+const promoSummary = document.getElementById('promoSummary');
+const promoSummaryCode = document.getElementById('promoSummaryCode');
+const promoSummaryDiscount = document.getElementById('promoSummaryDiscount');
+const promoSummaryPrice = document.getElementById('promoSummaryPrice');
 const submitStatus = document.getElementById('submitStatus');
 const submitProgress = document.getElementById('submitProgress');
 const submitProgressLabel = document.getElementById('submitProgressLabel');
 const submitProgressPercent = document.getElementById('submitProgressPercent');
 const submitProgressFill = document.getElementById('submitProgressFill');
 const submitProgressNote = document.getElementById('submitProgressNote');
+const savedOrderPanel = document.getElementById('savedOrderPanel');
+const savedOrderNumberDisplay = document.getElementById('savedOrderNumberDisplay');
+const savedOrderEmailDisplay = document.getElementById('savedOrderEmailDisplay');
+const savedOrderFinishDisplay = document.getElementById('savedOrderFinishDisplay');
 const orderResult = document.getElementById('orderResult');
 const guidDisplay = document.getElementById('guidDisplay');
 const lookupForm = document.getElementById('lookupForm');
@@ -41,6 +58,7 @@ const trackingQrImage = document.getElementById('trackingQrImage');
 const showcaseCards = Array.from(document.querySelectorAll('.showcase-card'));
 const config = window.GARAGE2SHELF_CONFIG || { apiBaseUrl: '', sheetName: 'OrderSheet' };
 const ORDER_REFERENCE_STORAGE_KEY = 'garage2shelf-last-order';
+const ORDER_REFERENCE_COOKIE_KEY = 'garage2shelf_order_number';
 
 let featuredIndex = 0;
 let featuredIntervalId = null;
@@ -49,24 +67,22 @@ let touchStartX = 0;
 let touchEndX = 0;
 let checkoutStepIndex = 0;
 let isCheckoutProcessing = false;
+let activeSavedOrder = null;
+let activePromo = null;
 
 function renderFeaturedDots() {
     if (!dotsContainer) {
         return;
     }
 
-    dotsContainer.innerHTML = '';
-    featuredSlides.forEach((_, index) => {
-        const dot = document.createElement('button');
-        dot.type = 'button';
-        dot.classList.toggle('is-active', index === featuredIndex);
-        dot.setAttribute('aria-label', `Go to image ${index + 1}`);
-        dot.addEventListener('click', () => {
-            setFeaturedSlide(index);
-            restartFeaturedTimer();
-        });
-        dotsContainer.appendChild(dot);
-    });
+function clearLatestOrderReference() {
+    try {
+        window.localStorage.removeItem(ORDER_REFERENCE_STORAGE_KEY);
+    } catch {
+        // Ignore storage failures.
+    }
+
+    document.cookie = `${ORDER_REFERENCE_COOKIE_KEY}=; max-age=0; path=/; SameSite=Lax`;
 }
 
 function saveLatestOrderReference(orderReference) {
@@ -75,15 +91,299 @@ function saveLatestOrderReference(orderReference) {
     } catch {
         // Ignore storage failures.
     }
+
+    if (orderReference?.orderNumber) {
+        const maxAgeSeconds = 60 * 60 * 24 * 30;
+        document.cookie = `${ORDER_REFERENCE_COOKIE_KEY}=${encodeURIComponent(orderReference.orderNumber)}; max-age=${maxAgeSeconds}; path=/; SameSite=Lax`;
+    }
+}
+
+function canResumeSavedOrder(orderReference) {
+    return Boolean(
+        orderReference?.paymentStatus === 'pending'
+        && orderReference.orderNumber
+        && orderReference.email
+        && orderReference.finish
+        && orderReference.firstName
+        && orderReference.lastName
+        && orderReference.street1
+        && orderReference.city
+        && orderReference.state
+        && orderReference.zipCode
+    );
+}
+
+function getPendingOrderReference() {
+    const savedReference = loadLatestOrderReference();
+    return canResumeSavedOrder(savedReference) ? savedReference : null;
+}
+
+function setFieldValue(fieldName, value) {
+    const field = orderForm?.querySelector(`[name="${fieldName}"]`);
+    if (field) {
+        field.value = value || '';
+    }
+}
+
+function fillOrderFormFromSavedOrder(orderReference) {
+    if (!orderForm) {
+        return;
+    }
+
+    setFieldValue('firstName', orderReference.firstName);
+    setFieldValue('lastName', orderReference.lastName);
+    setFieldValue('email', orderReference.email);
+    setFieldValue('phone', orderReference.phone);
+    setFieldValue('street1', orderReference.street1);
+    setFieldValue('street2', orderReference.street2);
+    setFieldValue('city', orderReference.city);
+    setFieldValue('state', orderReference.state);
+    setFieldValue('zipCode', orderReference.zipCode);
+
+    const finishValue = String(orderReference.price || '').trim();
+    const matchingFinish = finishInputs.find((input) => input.value === finishValue)
+        || finishInputs.find((input) => input.closest('.finish-card')?.querySelector('strong')?.textContent?.trim() === orderReference.finish);
+
+    if (matchingFinish) {
+        matchingFinish.checked = true;
+    }
+
+    updatePrice();
+    applySavedPromo(orderReference.promoCode || '', orderReference.discount || '');
+}
+
+function updateSavedOrderPanel(orderReference) {
+    if (savedOrderNumberDisplay) {
+        savedOrderNumberDisplay.textContent = orderReference?.orderNumber || '';
+    }
+
+function formatDiscountPercent(discountMultiplier) {
+    const value = Number(discountMultiplier);
+    if (!Number.isFinite(value) || value <= 0 || value >= 1) {
+        return '';
+    }
+
+    return `${Math.round((1 - value) * 100)}% off`;
+}
+
+function calculateDiscountedPrice(basePrice, discountMultiplier) {
+    const price = Number(basePrice);
+    const multiplier = Number(discountMultiplier);
+    if (!Number.isFinite(price) || !Number.isFinite(multiplier)) {
+        return price;
+    }
+
+    return Math.round(price * multiplier * 100) / 100;
+}
+
+function updatePromoSummary() {
+    if (!promoSummary) {
+        return;
+    }
+
+    if (!activePromo?.promoCode || !activePromo?.discount) {
+        promoSummary.hidden = true;
+        if (promoSummaryCode) promoSummaryCode.textContent = '';
+        if (promoSummaryDiscount) promoSummaryDiscount.textContent = '';
+        if (promoSummaryPrice) promoSummaryPrice.textContent = '';
+        return;
+    }
+
+    const basePrice = getSelectedFinish().price;
+    const discountedPrice = calculateDiscountedPrice(basePrice, activePromo.discount);
+
+    if (promoSummaryCode) {
+        promoSummaryCode.textContent = activePromo.promoCode;
+    }
+
+    if (promoSummaryDiscount) {
+        promoSummaryDiscount.textContent = formatDiscountPercent(activePromo.discount);
+    }
+
+    if (promoSummaryPrice) {
+        promoSummaryPrice.textContent = `$${discountedPrice.toFixed(2)}`;
+    }
+
+    promoSummary.hidden = false;
+}
+
+function clearPromoState() {
+    activePromo = null;
+    if (promoStatus) {
+        promoStatus.textContent = '';
+    }
+    updatePromoSummary();
+}
+
+function applySavedPromo(promoCode, discount) {
+    if (!promoCode || !discount) {
+        clearPromoState();
+        if (promoCodeInput) {
+            promoCodeInput.value = '';
+        }
+        return;
+    }
+
+    activePromo = {
+        promoCode,
+        discount
+    };
+
+    if (promoCodeInput) {
+        promoCodeInput.value = promoCode;
+    }
+
+    if (promoStatus) {
+        promoStatus.textContent = `Promo code ${promoCode} applied.`;
+    }
+
+    updatePromoSummary();
+}
+
+async function validatePromoCode() {
+    const promoCode = String(promoCodeInput?.value || '').trim();
+    if (!promoCode) {
+        clearPromoState();
+        if (promoStatus) {
+            promoStatus.textContent = 'Enter a promo code to apply a discount.';
+        }
+        return;
+    }
+
+    if (promoStatus) {
+        promoStatus.textContent = 'Checking promo code...';
+    }
+
+    const requestUrl = `${config.apiBaseUrl.replace(/\/$/, '')}/api/promo/validate`;
+    const response = await fetch(requestUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({ promoCode })
+    });
+
+    const result = await response.json();
+    if (!response.ok || !result.success || !result.valid) {
+        clearPromoState();
+        throw new Error(result.message || 'Promo code could not be applied.');
+    }
+
+    activePromo = {
+        promoCode: String(result.promoCode || promoCode).trim(),
+        discount: String(result.discount || '').trim()
+    };
+
+    if (promoCodeInput) {
+        promoCodeInput.value = activePromo.promoCode;
+    }
+
+    if (promoStatus) {
+        promoStatus.textContent = result.message || `Promo code ${activePromo.promoCode} applied.`;
+    }
+
+    updatePromoSummary();
+}
+
+    if (savedOrderEmailDisplay) {
+        savedOrderEmailDisplay.textContent = orderReference?.email || '';
+    }
+
+    if (savedOrderFinishDisplay) {
+        savedOrderFinishDisplay.textContent = orderReference?.finish || '';
+    }
+
+    if (savedOrderPanel) {
+        savedOrderPanel.hidden = !orderReference;
+    }
+}
+
+function showResumeOrderPrompt(orderReference) {
+    if (!resumeOrderModal) {
+        return;
+    }
+
+    if (resumePromptOrderNumber) {
+        resumePromptOrderNumber.textContent = orderReference.orderNumber || '';
+    }
+
+    if (resumePromptEmail) {
+        resumePromptEmail.textContent = orderReference.email || '';
+    }
+
+    resumeOrderModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeResumeOrderPrompt() {
+    if (!resumeOrderModal) {
+        return;
+    }
+
+    resumeOrderModal.hidden = true;
+    if (checkoutModal?.hidden !== false) {
+        document.body.style.overflow = '';
+    }
+}
+
+function resetCheckoutForNewOrder() {
+    activeSavedOrder = null;
+    updateSavedOrderPanel(null);
+    orderForm?.reset();
+    resetUploadPreviews();
+    updatePrice();
+    setCheckoutStep(0);
+    if (submitStatus) {
+        submitStatus.textContent = '';
+    }
+    hideSubmitProgress();
+    showOrderReference('');
+}
+
+function beginSavedOrderResume(orderReference) {
+    activeSavedOrder = orderReference;
+    fillOrderFormFromSavedOrder(orderReference);
+    updateSavedOrderPanel(orderReference);
+    showOrderReference(orderReference.orderNumber || '');
+    closeResumeOrderPrompt();
+    openCheckoutModal();
+    setCheckoutStep(checkoutScreens.length - 1);
+
+    if (submitStatus) {
+        submitStatus.textContent = `Resuming Order Number ${orderReference.orderNumber}. Continue to Stripe when ready.`;
+    }
+}
+
+function handleOpenCheckout() {
+    const pendingOrder = getPendingOrderReference();
+    if (pendingOrder) {
+        showResumeOrderPrompt(pendingOrder);
+        return;
+    }
+
+    resetCheckoutForNewOrder();
+    openCheckoutModal();
 }
 
 function loadLatestOrderReference() {
     try {
         const raw = window.localStorage.getItem(ORDER_REFERENCE_STORAGE_KEY);
-        return raw ? JSON.parse(raw) : null;
+        const localReference = raw ? JSON.parse(raw) : null;
+        if (localReference?.orderNumber) {
+            return localReference;
+        }
     } catch {
+        // Ignore storage failures.
+    }
+
+    const cookieMatch = document.cookie.match(new RegExp(`(?:^|; )${ORDER_REFERENCE_COOKIE_KEY}=([^;]*)`));
+    if (!cookieMatch) {
         return null;
     }
+
+    return {
+        orderNumber: decodeURIComponent(cookieMatch[1])
+    };
 }
 
 function showOrderReference(orderNumber) {
@@ -148,6 +448,8 @@ function setCheckoutProcessingState(isProcessing) {
     if (openCheckoutButton) {
         openCheckoutButton.disabled = isProcessing;
     }
+
+    updateCheckoutControls();
 }
 
 function setFeaturedSlide(index) {
@@ -226,6 +528,8 @@ function updatePrice() {
     if (reviewFinish) {
         reviewFinish.textContent = getSelectedFinish().label;
     }
+
+    updatePromoSummary();
 }
 
 function getSelectedFinish() {
@@ -254,6 +558,7 @@ function syncReviewStep() {
 function updateCheckoutControls() {
     checkoutStepButtons.forEach((button, index) => {
         button.classList.toggle('is-active', index === checkoutStepIndex);
+        button.disabled = isCheckoutProcessing || Boolean(activeSavedOrder && index !== checkoutStepIndex);
     });
 
     checkoutScreens.forEach((screen, index) => {
@@ -261,11 +566,11 @@ function updateCheckoutControls() {
     });
 
     if (checkoutBackButton) {
-        checkoutBackButton.hidden = checkoutStepIndex === 0;
+        checkoutBackButton.hidden = Boolean(activeSavedOrder) || checkoutStepIndex === 0;
     }
 
     if (checkoutNextButton) {
-        checkoutNextButton.hidden = checkoutStepIndex === checkoutScreens.length - 1;
+        checkoutNextButton.hidden = Boolean(activeSavedOrder) || checkoutStepIndex === checkoutScreens.length - 1;
     }
 }
 
@@ -510,6 +815,8 @@ async function buildSubmissionPayload() {
         honeypot: honeypot,
         finish: finish.label,
         price: finish.price,
+        promoCode: activePromo?.promoCode || '',
+        promoDiscount: activePromo?.discount || '',
         files
     };
 }
@@ -552,6 +859,7 @@ async function createStripeCheckoutSession(order) {
             guid: order.guid,
             email: order.email,
             finish: order.finish,
+            promoCode: order.promoCode || '',
             firstName: order.firstName,
             lastName: order.lastName,
             phone: order.phone,
@@ -618,6 +926,40 @@ async function handleOrderSubmit(event) {
         return;
     }
 
+    if (activeSavedOrder) {
+        setCheckoutProcessingState(true);
+        setSubmitProgress(20, 'Loading saved order...', 'Using your existing order details and Order Number.');
+
+        try {
+            showOrderReference(activeSavedOrder.orderNumber || '');
+            updateSavedOrderPanel(activeSavedOrder);
+            const checkoutSession = await createStripeCheckoutSession({
+                guid: activeSavedOrder.orderNumber,
+                email: activeSavedOrder.email,
+                finish: activeSavedOrder.finish,
+                promoCode: activeSavedOrder.promoCode || '',
+                firstName: activeSavedOrder.firstName,
+                lastName: activeSavedOrder.lastName,
+                phone: activeSavedOrder.phone,
+                street1: activeSavedOrder.street1,
+                street2: activeSavedOrder.street2,
+                city: activeSavedOrder.city,
+                state: activeSavedOrder.state,
+                zipCode: activeSavedOrder.zipCode
+            });
+
+            setSubmitProgress(100, 'Secure checkout ready.', 'Redirecting you back to Stripe with your saved order now.');
+            submitStatus.textContent = `Resuming Order Number ${activeSavedOrder.orderNumber}. Redirecting to Stripe...`;
+            window.location.href = checkoutSession.checkoutUrl;
+        } catch (error) {
+            setSubmitProgress(100, 'Resume stopped.', 'We could not continue this saved order into Stripe right now.');
+            submitStatus.textContent = error instanceof Error ? error.message : 'Could not resume saved order.';
+            setCheckoutProcessingState(false);
+        }
+
+        return;
+    }
+
     if (!validateCheckoutStep(0) || !validateCheckoutStep(1)) {
         if (!validateCheckoutStep(0)) {
             setCheckoutStep(0);
@@ -646,7 +988,19 @@ async function handleOrderSubmit(event) {
         showOrderReference(orderNumber);
         saveLatestOrderReference({
             orderNumber,
+            firstName: payload.firstName,
+            lastName: payload.lastName,
             email: payload.email,
+            phone: payload.phone,
+            street1: payload.street1,
+            street2: payload.street2,
+            city: payload.city,
+            state: payload.state,
+            zipCode: payload.zipCode,
+            finish: payload.finish,
+            price: payload.price,
+            promoCode: activePromo?.promoCode || '',
+            discount: activePromo?.discount || '',
             createdAt: result.createdAt || '',
             paymentStatus: 'pending'
         });
@@ -656,6 +1010,7 @@ async function handleOrderSubmit(event) {
             guid: orderNumber,
             email: payload.email,
             finish: payload.finish,
+            promoCode: activePromo?.promoCode || '',
             firstName: payload.firstName,
             lastName: payload.lastName,
             phone: payload.phone,
@@ -775,6 +1130,22 @@ uploadInputs.forEach((input) => {
 });
 syncUploadProgress();
 
+applyPromoButton?.addEventListener('click', async () => {
+    try {
+        await validatePromoCode();
+    } catch (error) {
+        if (promoStatus) {
+            promoStatus.textContent = error instanceof Error ? error.message : 'Promo code could not be applied.';
+        }
+    }
+});
+
+promoCodeInput?.addEventListener('input', () => {
+    if (!promoCodeInput?.value.trim()) {
+        clearPromoState();
+    }
+});
+
 const latestOrderReference = loadLatestOrderReference();
 if (latestOrderReference?.orderNumber) {
     showOrderReference(latestOrderReference.orderNumber);
@@ -783,7 +1154,24 @@ if (latestOrderReference?.orderNumber) {
 orderForm?.addEventListener('submit', handleOrderSubmit);
 lookupForm?.addEventListener('submit', handleLookupSubmit);
 
-openCheckoutButton?.addEventListener('click', openCheckoutModal);
+openCheckoutButton?.addEventListener('click', handleOpenCheckout);
+resumeOrderBackdrop?.addEventListener('click', closeResumeOrderPrompt);
+resumeSavedOrderButton?.addEventListener('click', () => {
+    const pendingOrder = getPendingOrderReference();
+    if (pendingOrder) {
+        beginSavedOrderResume(pendingOrder);
+    } else {
+        closeResumeOrderPrompt();
+        resetCheckoutForNewOrder();
+        openCheckoutModal();
+    }
+});
+startFreshOrderButton?.addEventListener('click', () => {
+    clearLatestOrderReference();
+    closeResumeOrderPrompt();
+    resetCheckoutForNewOrder();
+    openCheckoutModal();
+});
 checkoutCloseButtons.forEach((button) => {
     button.addEventListener('click', closeCheckoutModal);
 });

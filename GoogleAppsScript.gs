@@ -1,5 +1,6 @@
 const SPREADSHEET_ID = '1rttsg9txS1BrTADM7cMnJveQsKycBJzZquVRPoW6EWo';
 const SHEET_NAME = 'OrderSheet';
+const PROMO_SHEET_NAME = 'Promocodes';
 const DRIVE_FOLDER_ID = '1QxshPegSnd6U0eXrAHoWhjAks0BXibnU';
 const DEFAULT_STATUS = 'Submitted';
 const DEFAULT_PAID = 'n';
@@ -15,10 +16,225 @@ function doPost(e) {
 	  return jsonResponse(handleLookupOrder_(payload));
 	}
 
+	if (payload.action === 'updateStripeSession') {
+	  return jsonResponse(handleUpdateStripeSession_(payload));
+	}
+
+	if (payload.action === 'updatePaymentStatus') {
+	  return jsonResponse(handleUpdatePaymentStatus_(payload));
+	}
+
+	if (payload.action === 'validatePromoCode') {
+	  return jsonResponse(handleValidatePromoCode_(payload));
+	}
+
+	if (payload.action === 'incrementPromoUsage') {
+	  return jsonResponse(handleIncrementPromoUsage_(payload));
+	}
+
 	return jsonResponse({ success: false, message: 'Unsupported action.' });
   } catch (error) {
 	return jsonResponse({ success: false, message: error.message || 'Unexpected server error.' });
   }
+}
+
+function handleUpdateStripeSession_(payload) {
+  validateRequired_(payload.guid, 'GUID is required.');
+  const sheet = getSheet_(payload.sheetName || SHEET_NAME);
+  const updated = updateOrderFieldsByGuid_(sheet, payload.guid, {
+	StripeSessionId: payload.stripeSessionId || '',
+	PaymentStatus: payload.paymentStatus || 'pending',
+	PAID: payload.paid || 'n',
+	LastUpdated: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss')
+  });
+
+  if (!updated) {
+	return { success: false, message: 'Order not found for Stripe session update.' };
+  }
+
+  return { success: true, message: 'Stripe session saved.' };
+}
+
+function handleUpdatePaymentStatus_(payload) {
+  validateRequired_(payload.guid, 'GUID is required.');
+  const sheet = getSheet_(payload.sheetName || SHEET_NAME);
+  const updated = updateOrderFieldsByGuid_(sheet, payload.guid, {
+	PaymentStatus: payload.paymentStatus || 'pending',
+	StripeSessionId: payload.stripeSessionId || '',
+	StripePaymentIntentId: payload.stripePaymentIntentId || '',
+	PaymentAmount: payload.paymentAmount || '',
+	PaymentCurrency: payload.paymentCurrency || '',
+	PAID: payload.paid || 'n',
+	LastUpdated: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss')
+  });
+
+  if (!updated) {
+	return { success: false, message: 'Order not found for payment update.' };
+  }
+
+  return { success: true, message: 'Payment status updated.' };
+}
+
+function handleValidatePromoCode_(payload) {
+  const promoCode = String(payload.promoCode || '').trim();
+  validateRequired_(promoCode, 'Promo code is required.');
+
+  const sheet = getSheet_(payload.sheetName || PROMO_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  if (values.length < 2) {
+	return { success: false, message: 'No promo codes found.' };
+  }
+
+  const headers = values[0];
+  const promoCodeIndex = headers.indexOf('PromoCode');
+  const activeIndex = headers.indexOf('Active');
+  const discountIndex = headers.indexOf('Discount');
+
+  if (promoCodeIndex === -1 || activeIndex === -1 || discountIndex === -1) {
+	throw new Error('Promocodes sheet is missing required headers.');
+  }
+
+  for (var i = 1; i < values.length; i += 1) {
+	const row = values[i];
+	const rowCode = String(row[promoCodeIndex] || '').trim();
+
+	if (rowCode.toLowerCase() !== promoCode.toLowerCase()) {
+	  continue;
+	}
+
+	if (String(row[activeIndex] || '').trim().toUpperCase() !== 'Y') {
+	  return { success: false, message: 'Promo code is not active.' };
+	}
+
+	const discount = String(row[discountIndex] || '').trim();
+	if (discount !== '0.95' && discount !== '0.90' && discount !== '0.85') {
+	  return { success: false, message: 'Promo code discount is not supported.' };
+	}
+
+	return {
+	  success: true,
+	  promoCode: rowCode,
+	  discount: discount,
+	  message: 'Promo code applied.'
+	};
+  }
+
+  return { success: false, message: 'Promo code not found.' };
+}
+
+function handleIncrementPromoUsage_(payload) {
+  validateRequired_(payload.promoCode, 'Promo code is required.');
+  validateRequired_(payload.guid, 'GUID is required.');
+
+  const orderSheet = getSheet_(SHEET_NAME);
+  const orderValues = orderSheet.getDataRange().getValues();
+  if (orderValues.length < 2) {
+	return { success: false, message: 'No orders found.' };
+  }
+
+  const orderHeaders = orderValues[0];
+  const guidIndex = orderHeaders.indexOf('Guid');
+  const promoUsageCountedIndex = orderHeaders.indexOf('PromoUsageCounted');
+  const promoCodeIndex = orderHeaders.indexOf('PromoCode');
+
+  if (guidIndex === -1) {
+	throw new Error('Guid column not found in OrderSheet.');
+  }
+
+  var matchedOrderRow = -1;
+  for (var i = 1; i < orderValues.length; i += 1) {
+	if (String(orderValues[i][guidIndex]).trim() === String(payload.guid).trim()) {
+	  matchedOrderRow = i + 1;
+	  break;
+	}
+  }
+
+  if (matchedOrderRow === -1) {
+	return { success: false, message: 'Order not found for promo usage update.' };
+  }
+
+  if (promoUsageCountedIndex !== -1) {
+	const countedValue = String(orderSheet.getRange(matchedOrderRow, promoUsageCountedIndex + 1).getValue() || '').trim().toUpperCase();
+	if (countedValue === 'Y') {
+	  return { success: true, message: 'Promo usage already counted.' };
+	}
+  }
+
+  const promoSheet = getSheet_(PROMO_SHEET_NAME);
+  const promoValues = promoSheet.getDataRange().getValues();
+  if (promoValues.length < 2) {
+	return { success: false, message: 'No promo codes found.' };
+  }
+
+  const promoHeaders = promoValues[0];
+  const promoCodeSheetIndex = promoHeaders.indexOf('PromoCode');
+  const usageIndex = promoHeaders.indexOf('Usage');
+
+  if (promoCodeSheetIndex === -1 || usageIndex === -1) {
+	throw new Error('Promocodes sheet is missing PromoCode or Usage headers.');
+  }
+
+  var matchedPromoRow = -1;
+  for (var j = 1; j < promoValues.length; j += 1) {
+	if (String(promoValues[j][promoCodeSheetIndex] || '').trim().toLowerCase() === String(payload.promoCode).trim().toLowerCase()) {
+	  matchedPromoRow = j + 1;
+	  break;
+	}
+  }
+
+  if (matchedPromoRow === -1) {
+	return { success: false, message: 'Promo code not found for usage update.' };
+  }
+
+  const currentUsage = Number(promoSheet.getRange(matchedPromoRow, usageIndex + 1).getValue() || 0);
+  promoSheet.getRange(matchedPromoRow, usageIndex + 1).setValue(currentUsage + 1);
+
+  if (promoCodeIndex !== -1) {
+	orderSheet.getRange(matchedOrderRow, promoCodeIndex + 1).setValue(String(payload.promoCode || '').trim());
+  }
+
+  if (promoUsageCountedIndex !== -1) {
+	orderSheet.getRange(matchedOrderRow, promoUsageCountedIndex + 1).setValue('Y');
+  }
+
+  const lastUpdatedIndex = orderHeaders.indexOf('LastUpdated');
+  if (lastUpdatedIndex !== -1) {
+	orderSheet.getRange(matchedOrderRow, lastUpdatedIndex + 1).setValue(
+	  Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss')
+	);
+  }
+
+  return { success: true, message: 'Promo usage incremented.' };
+}
+
+function updateOrderFieldsByGuid_(sheet, guid, fieldMap) {
+  const values = sheet.getDataRange().getValues();
+  if (values.length < 2) {
+	return false;
+  }
+
+  const headers = values[0];
+  const guidIndex = headers.indexOf('Guid');
+  if (guidIndex === -1) {
+	throw new Error('Guid column not found.');
+  }
+
+  for (var rowIndex = 1; rowIndex < values.length; rowIndex += 1) {
+	if (String(values[rowIndex][guidIndex]).trim() !== String(guid).trim()) {
+	  continue;
+	}
+
+	Object.keys(fieldMap).forEach(function (fieldName) {
+	  const columnIndex = headers.indexOf(fieldName);
+	  if (columnIndex !== -1) {
+		sheet.getRange(rowIndex + 1, columnIndex + 1).setValue(fieldMap[fieldName]);
+	  }
+	});
+
+	return true;
+  }
+
+  return false;
 }
 
 function doGet(e) {

@@ -81,6 +81,29 @@
                 <button type="button" class="primary-btn order-launch__button" id="openCheckoutButton">Start checkout</button>
             </div>
 
+            <div class="resume-order-modal" id="resumeOrderModal" hidden>
+                <div class="resume-order-modal__backdrop" id="resumeOrderBackdrop"></div>
+                <div class="resume-order-modal__panel" role="dialog" aria-modal="true" aria-labelledby="resumeOrderTitle">
+                    <p class="eyebrow">Saved order found</p>
+                    <h3 id="resumeOrderTitle">Pick up where you left off?</h3>
+                    <p class="checkout-screen__copy">We found a saved pending order that has not completed Stripe checkout yet.</p>
+                    <div class="saved-order-panel saved-order-panel--prompt">
+                        <div>
+                            <span>Order Number</span>
+                            <strong id="resumePromptOrderNumber"></strong>
+                        </div>
+                        <div>
+                            <span>Email</span>
+                            <strong id="resumePromptEmail"></strong>
+                        </div>
+                    </div>
+                    <div class="resume-order-modal__actions">
+                        <button type="button" class="primary-btn" id="resumeSavedOrderButton">Resume saved order</button>
+                        <button type="button" class="secondary-btn" id="startFreshOrderButton">Start a new order</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="checkout-modal" id="checkoutModal" hidden>
                 <div class="checkout-modal__backdrop" data-close-checkout></div>
                 <aside class="checkout-modal__panel" aria-labelledby="checkoutTitle" aria-modal="true" role="dialog">
@@ -259,6 +282,50 @@
                                     <div>
                                         <span>Estimated total</span>
                                         <strong id="reviewPrice">$50</strong>
+                                    </div>
+                                </div>
+
+                                <div class="promo-panel">
+                                    <label class="promo-panel__field">
+                                        <span>Promo code <small>(optional)</small></span>
+                                        <div class="promo-panel__input-row">
+                                            <input type="text" name="promoCode" id="promoCodeInput" placeholder="Enter promo code" autocomplete="off" />
+                                            <button type="button" class="secondary-btn promo-panel__button" id="applyPromoButton">Apply</button>
+                                        </div>
+                                    </label>
+                                    <p class="form-status promo-panel__status" id="promoStatus" aria-live="polite"></p>
+                                    <div class="promo-summary" id="promoSummary" hidden>
+                                        <div>
+                                            <span>Promo code</span>
+                                            <strong id="promoSummaryCode"></strong>
+                                        </div>
+                                        <div>
+                                            <span>Discount</span>
+                                            <strong id="promoSummaryDiscount"></strong>
+                                        </div>
+                                        <div>
+                                            <span>Adjusted total</span>
+                                            <strong id="promoSummaryPrice"></strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="saved-order-panel" id="savedOrderPanel" hidden>
+                                    <div>
+                                        <span>Saved Order Number</span>
+                                        <strong id="savedOrderNumberDisplay"></strong>
+                                    </div>
+                                    <div>
+                                        <span>Saved email</span>
+                                        <strong id="savedOrderEmailDisplay"></strong>
+                                    </div>
+                                    <div>
+                                        <span>Finish</span>
+                                        <strong id="savedOrderFinishDisplay"></strong>
+                                    </div>
+                                    <div>
+                                        <span>Status</span>
+                                        <strong>Ready to continue to Stripe</strong>
                                     </div>
                                 </div>
 
