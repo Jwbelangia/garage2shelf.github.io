@@ -136,11 +136,12 @@ h1 {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
-    align-items: stretch;
+    align-items: start;
 }
 
 .hero__gif-frame {
     position: relative;
+    width: 100%;
     border-radius: 28px;
     overflow: hidden;
     border: 1px solid rgba(255, 210, 95, 0.16);
@@ -169,21 +170,20 @@ h1 {
 }
 
 .mini-gallery {
+    position: relative;
+    width: 100%;
     border-radius: 22px;
     overflow: hidden;
     background: linear-gradient(180deg, rgba(25, 18, 10, 0.98), rgba(14, 14, 14, 0.98));
     border: 1px solid rgba(255, 206, 86, 0.12);
     box-shadow: var(--shadow);
-    display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
-    min-height: 100%;
+    aspect-ratio: 1 / 1;
 }
 
 .mini-gallery__viewport {
     position: relative;
     width: 100%;
-    min-height: 320px;
-    aspect-ratio: 1 / 1;
+    height: 100%;
     touch-action: pan-y;
 }
 
@@ -210,11 +210,17 @@ h1 {
 }
 
 .mini-gallery__controls {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     padding: 0.75rem 1rem;
+    background: linear-gradient(180deg, rgba(11, 14, 19, 0), rgba(11, 14, 19, 0.9) 60%);
 }
 
 .gallery-btn {
@@ -1141,9 +1147,12 @@ h1 {
         aspect-ratio: 4 / 3;
     }
 
-    .mini-gallery__viewport {
-        min-height: 260px;
+    .mini-gallery {
         aspect-ratio: 4 / 3;
+    }
+
+    .mini-gallery__viewport {
+        min-height: 0;
     }
 
     .mini-gallery__controls {
