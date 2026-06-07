@@ -69,89 +69,6 @@ let checkoutStepIndex = 0;
 let isCheckoutProcessing = false;
 let activeSavedOrder = null;
 let activePromo = null;
-// Auto-load any images placed in Images/PhotoGallery into the featured carousel.
-async function populateFeaturedFromFolder() {
-    try {
-        const viewport = document.querySelector('[data-carousel="featured"]');
-        if (!viewport) return;
-
-        // Try fetching a directory listing from the folder URL. Some static hosts
-        // return an HTML index when you request the folder path.
-        const dirUrl = 'Images/PhotoGallery/';
-        const dirResp = await fetch(dirUrl, { cache: 'no-cache' });
-        let files = [];
-
-        if (dirResp.ok && dirResp.headers.get('content-type')?.includes('text/html')) {
-            const text = await dirResp.text();
-            // Parse anchors and src-like attributes for image file names
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(text, 'text/html');
-            const candidates = Array.from(doc.querySelectorAll('a, img')).map((el) => el.getAttribute('href') || el.getAttribute('src')).filter(Boolean);
-            const imageExt = /\.(jpe?g|png|gif|webp|jfif|bmp)$/i;
-            files = candidates.map((c) => decodeURIComponent(c.split('?')[0].split('#')[0].replace(/^\/+/, ''))).filter((n, i, arr) => imageExt.test(n) && arr.indexOf(n) === i);
-        }
-
-        // If directory listing didn't yield results, try an index.json file.
-        if (!files.length) {
-            try {
-                const indexUrl = 'Images/PhotoGallery/index.json';
-                const idxResp = await fetch(indexUrl, { cache: 'no-cache' });
-                if (idxResp.ok) {
-                    const json = await idxResp.json();
-                    if (Array.isArray(json) && json.length) {
-                        files = json.slice();
-                    }
-                }
-            } catch {
-                // ignore
-            }
-        }
-
-        // Final fallback: try a small set of common filenames (keeps behavior safe)
-        if (!files.length) {
-            files = [
-                'Garage2ShelfBanner.png',
-                'Garage2Shelf.gif',
-                'Back_Unpainted_Resin.jpg',
-                'Back_Painted_Resin.jpg',
-                'Full_Unpainted_Resin.jpg',
-                'Full_Painted_Resin.jpg',
-                'download - Copy.jfif'
-            ];
-        }
-
-        // Clear existing slides
-        viewport.innerHTML = '';
-
-        const addSlide = (src, alt, isActive) => {
-            const article = document.createElement('article');
-            article.className = 'mini-gallery__slide' + (isActive ? ' is-active' : '');
-            const img = document.createElement('img');
-            img.src = dirUrl + src;
-            img.alt = alt || '';
-            article.appendChild(img);
-            viewport.appendChild(article);
-        };
-
-        files.forEach((name, idx) => {
-            if (!name) return;
-            // If the name looks like a full path, extract the basename
-            const parts = name.split('/');
-            const filename = parts[parts.length - 1];
-            addSlide(filename, filename.replace(/[-_]+/g, ' '), idx === 0);
-        });
-
-        // Re-query slides and re-initialize carousel controls
-        featuredSlides = Array.from(viewport.querySelectorAll('.mini-gallery__slide'));
-        if (featuredSlides.length) {
-            renderFeaturedDots();
-            setFeaturedSlide(0);
-            restartFeaturedTimer();
-        }
-    } catch {
-        // Silent failure — leave carousel empty
-    }
-}
 
 function renderFeaturedDots() {
     if (!dotsContainer) {
@@ -1331,5 +1248,3 @@ updateCheckoutControls();
 
 setShowcaseCard(0);
 startShowcaseFader();
-// Populate the featured carousel from Images/PhotoGallery when the page loads.
-populateFeaturedFromFolder();
